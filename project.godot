@@ -1,0 +1,34 @@
+; Engine configuration file.
+; 《香港IT人》 / hkitguy — Godot 4.7.2.stable Phase 3b+5.x
+
+config_version=5
+
+[application]
+
+config/name="香港IT人"
+config/description="香港 IT 職涯模擬人生：開局＋月迴圈＋季節／事件＋公司模擬＋升遷跳槽＋勞動市場／裁員＋氛圍背景（Phase 3b／5.x）"
+run/main_scene="res://scenes/title.tscn"
+config/features=PackedStringArray("4.7", "Forward Plus")
+config/icon="res://icon.svg"
+
+[autoload]
+
+GameState="*res://scripts/game_state.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+
+[gui]
+
+theme/custom_font="res://assets/fonts/NotoSansCJKtc-Regular.otf"
+
+[internationalization]
+
+locale/fallback="zh_Hant"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"

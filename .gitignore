@@ -1,0 +1,13 @@
+# Godot
+.godot/
+*.translation
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Local scratch
+*.tmp
+*.log
