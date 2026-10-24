@@ -1,4 +1,4 @@
-# 《香港IT人》— 玩法規格（v2.0.3）
+# 《香港IT人》— 玩法規格（v2.0.5）
 
 > 專案 id／資料夾：**hkitguy**  
 > 對外名稱：**《香港IT人》**  
@@ -27,6 +27,8 @@
 > - **Phase D 主角變體 LOCKED（Raymond，2026-10-22，all-four）**：`portrait_tired.jpg`／`portrait_confident.jpg`／`fullbody_hoodie.jpg`／`fullbody_formal.jpg`；切換：`scripts/protagonist_art.gd`（健康／上次活動 → 表情；rest／social／向上管理 → 服裝）
 > - **Phase C Web 匯出 DONE（2026-10-22）**：preset **Web** → `build/web/index.html`；`scripts/export_web.sh`；nothreads；`public/_headers`；重建：`./scripts/export_web.sh`
 > - **UI 殼 LOCKED（Raymond，2026-10-22）**：**E glass RPG**（否決 hybrid A＋E／A／B）；示意 `shots/ui_mocks/E_glass_rpg.jpg`
+> - **步驟 tag 對比（Raymond，2026-10-24）**：棄用淡金字於玻璃上；`COL_TAG_FG`／`COL_TAG_BG`＋cyan rim pill（`make_step_tag`）
+- **Hub 活動圖示（Raymond，2026-10-24）**：Grok Imagine bias 8 圖 `assets/ui/icons/icon_bias_*.png`；`UiIcons.bias_icon_path`；危機活動用 `icon_bias_crisis`
 > - **HUD／header 規則**：chrome **唔好印遊戲名「香港IT人」**（怪）；標題畫面主標題可保留；hub／學歷／職位／Offer／月結 header 只顯示年月／職位／薪／狀態
 > - **開局打磨 A DONE（Raymond，2026-10-22）**：title→education→job→offer→month_result；glass 步驟 pill；粵語微文案；CTA「繼續 · …」；smoke 加 opening polish 斷言；截圖 01–04／03b
 > - **Phase 3a 系統 DONE（Raymond，2026-10-22）**：季節權重＋活動／事件表＋`fast_forward_months`；美術 Imagine 留 3b
@@ -319,7 +321,7 @@ Helpdesk／機房／開發樓層／Boardroom／茶餐廳／電腦中心／港鐵
 | 元素 | 實作 |
 |------|------|
 | 面板 | frosted glass（半透明藍灰）＋ cyan／gold 柔光邊（`UiStyle.glass_style`） |
-| Hub | header＝年月／職位／公司／薪（**無遊戲名**）；左＝立繪＋五色屬性 orb 環；右＝玻璃活動格（選取 cyan glow）；底＝軟橙 CTA |
+| Hub | header＝年月／職位／公司／薪（**無遊戲名**）；左＝立繪＋五色屬性 orb 環；右＝玻璃活動格＋**bias Imagine 圖示**（選取 cyan glow）；底＝軟橙 CTA |
 | 開局／月結 | 同 glass 語言；`make_card_panel`／`make_flavour_panel`／彩色 `make_stat_chip` |
 | 標題 | 主標題可顯示《香港IT人》；glass menu card＋橙「開始入行」 |
 | 工卡 | badge header＝「員工證」（唔再印 HONG KONG IT／遊戲名） |
@@ -331,7 +333,7 @@ Helpdesk／機房／開發樓層／Boardroom／茶餐廳／電腦中心／港鐵
 
 | 項 | 內容 |
 |----|------|
-| 步驟標籤 | `UiStyle.make_step_tag` → gold-rim **glass pill**（①／③ 學歷／②／③ 入職／③／③ 聘用／入職滿月） |
+| 步驟標籤 | `UiStyle.make_step_tag` → **cyan-rim dark pill**＋`COL_TAG_FG`（①／③ 學歷／②／③ 入職／③／③ 聘用／入職滿月；v2.0.4 對比修復） |
 | 標題 | pill「港式職場模擬」＋主標題《香港IT人》＋「開始入行」；tip 無 meta「開局」字眼 |
 | CTA | 「繼續 · 揀職位」「繼續 · 睇 Offer」「接受聘用，上班去」「繼續打工」 |
 | Offer | 「確認你嘅 Offer」；工卡「員工證／準員工」；內卡 gold rim；路徑金字 |
@@ -454,6 +456,8 @@ smoke PASS；重截 `shots/01`–`04`／`03b`。
 
 | 版 | 日期 | 摘要 |
 |----|------|------|
+| v2.0.5 | 2026-10-24 | Hub 活動列接 Grok Imagine bias 圖示（8 張 `assets/ui/icons/icon_bias_*.png`）；`UiIcons`；危機活動用 crisis 圖；選取仍 cyan glow |
+| v2.0.4 | 2026-10-24 | 步驟／區塊 tag 可讀性：`COL_TAG_FG`／`COL_TAG_BG`；`make_step_tag` 改 cyan-rim dark pill＋軟白字；月結職涯／勞動市場標籤同款；`COL_RIM_GOLD` 邊框不變 |
 | v2.0.1 | 2026-10-22 | Web 重匯 after Phase 5.x：`build/web` wasm≈38MiB／pck≈42MiB／合計≈80MiB；含勞動市場／裁員；未 Pages |
 | v2.0 | 2026-10-22 | Phase 5.x DONE：勞動市場 booming／balanced／freezing；shrinking→裁員／危機月（3 選項）；Save v3；smoke＋shots 12–13 |
 | v1.9 | 2026-10-22 | Phase 3b 氛圍 LOCKED all-five：`assets/bg/` 五圖＋`SceneBg`；hub／月結動態 BG；smoke 斷言；重截 04–06／10 |

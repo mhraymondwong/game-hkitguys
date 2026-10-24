@@ -127,7 +127,7 @@ func _build_ui() -> void:
 			bits.append("強制搵工")
 		meta.text = "　｜　".join(bits)
 		UiStyle.apply_label(meta, 12, true)
-		meta.add_theme_color_override("font_color", GameConfig.COL_RIM_GOLD)
+		meta.add_theme_color_override("font_color", GameConfig.COL_TAG_FG)
 		v.add_child(meta)
 
 	var scroll := ScrollContainer.new()
@@ -257,8 +257,9 @@ func _refresh_list() -> void:
 		var tag := ActivitiesData.bias_label(bias)
 		var season_star := bool(a.get("season_boost", false))
 		var track_star := bias == GameState.track
+		var is_crisis := id in LaborMarketData.CRISIS_ACTIVITY_IDS
 		var mark := ""
-		if id in LaborMarketData.CRISIS_ACTIVITY_IDS:
+		if is_crisis:
 			mark = " ◆危機"
 		elif id == "push-promo" and GameState.can_push_promo():
 			mark = " ◆可爭取"
@@ -278,8 +279,13 @@ func _refresh_list() -> void:
 			a.get("desc", ""),
 			ActivitiesData.format_deltas(a.get("deltas", {}))
 		]
+		var tex := UiIcons.load_bias_icon(bias, is_crisis)
+		if tex:
+			btn.icon = tex
+			btn.expand_icon = true
+			btn.add_theme_constant_override("icon_max_width", 52)
 		UiStyle.apply_choice_button(btn, id == _selected)
-		btn.custom_minimum_size = Vector2(0, 66)
+		btn.custom_minimum_size = Vector2(0, 72)
 		var id_capture := id
 		var title_capture := str(a.get("title", ""))
 		btn.pressed.connect(func() -> void:

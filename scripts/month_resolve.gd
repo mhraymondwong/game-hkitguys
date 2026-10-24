@@ -64,11 +64,7 @@ func _build_ui() -> void:
 	flavour_panel.add_child(flavour)
 
 	if GameState.last_career_kind != "":
-		var c_tag := Label.new()
-		c_tag.text = "職涯　·　%s" % GameState.last_career_title
-		UiStyle.apply_label(c_tag, 14)
-		c_tag.add_theme_color_override("font_color", GameConfig.COL_RIM_GOLD)
-		v.add_child(c_tag)
+		v.add_child(UiStyle.make_step_tag("職涯　·　%s" % GameState.last_career_title))
 		if GameState.last_career_flavour != "" and GameState.last_career_flavour != GameState.last_month_flavour:
 			var c_panel := UiStyle.make_flavour_panel()
 			v.add_child(c_panel)
@@ -96,14 +92,10 @@ func _build_ui() -> void:
 		co_panel.add_child(co_fl)
 
 	if GameState.last_climate_flavour != "":
-		var cl_tag := Label.new()
 		var cl_title := "勞動市場　·　%s" % GameState.climate_label()
 		if GameState.last_climate_changed:
 			cl_title += "（有變）"
-		cl_tag.text = cl_title
-		UiStyle.apply_label(cl_tag, 14)
-		cl_tag.add_theme_color_override("font_color", GameConfig.COL_RIM_GOLD)
-		v.add_child(cl_tag)
+		v.add_child(UiStyle.make_step_tag(cl_title))
 		var cl_panel := UiStyle.make_flavour_panel()
 		v.add_child(cl_panel)
 		var cl_fl := Label.new()

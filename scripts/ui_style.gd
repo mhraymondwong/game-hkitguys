@@ -142,11 +142,11 @@ static func apply_rich_label(rtl: RichTextLabel, size: int = 16) -> void:
 		rtl.add_theme_font_override("normal_font", f)
 
 
-## Gold-rim glass pill for step / section tags (opening + hub).
+## High-contrast step/section tag: soft cyan-white on dark cyan pill (E glass RPG).
 static func make_step_tag(text: String) -> PanelContainer:
 	var wrap := PanelContainer.new()
 	wrap.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	var sb := glass_style(GameConfig.COL_GLASS_LIGHT, GameConfig.COL_RIM_GOLD, 20, true)
+	var sb := glass_style(GameConfig.COL_TAG_BG, GameConfig.COL_RIM_CYAN, 20, true)
 	sb.content_margin_left = 14
 	sb.content_margin_right = 14
 	sb.content_margin_top = 6
@@ -156,7 +156,7 @@ static func make_step_tag(text: String) -> PanelContainer:
 	var tag := Label.new()
 	tag.text = text
 	apply_label(tag, 13, true)
-	tag.add_theme_color_override("font_color", GameConfig.COL_RIM_GOLD)
+	tag.add_theme_color_override("font_color", GameConfig.COL_TAG_FG)
 	wrap.add_child(tag)
 	return wrap
 
@@ -349,7 +349,7 @@ static func make_badge_panel(portrait_path: String, portrait_size: Vector2 = Vec
 	cap.text = caption
 	cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	apply_label(cap, 12, true)
-	cap.add_theme_color_override("font_color", GameConfig.COL_RIM_GOLD)
+	cap.add_theme_color_override("font_color", GameConfig.COL_TAG_FG)
 	body.add_child(cap)
 	return badge
 

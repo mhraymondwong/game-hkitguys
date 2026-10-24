@@ -1152,6 +1152,25 @@ func _run() -> void:
 		ok = false
 	else:
 		print("[smoke] hub climate/crisis UI OK")
+	# Hub bias Imagine icons
+	if "UiIcons.load_bias_icon" not in hub_src5:
+		printerr("[smoke] FAIL: hub missing UiIcons bias icons")
+		ok = false
+	else:
+		var bias_keys := ["infra", "app", "manage", "social", "study", "rest", "career", "crisis"]
+		var icons_ok := true
+		for bk in bias_keys:
+			var ipath := UiIcons.bias_icon_path(bk, bk == "crisis")
+			if not ResourceLoader.exists(ipath):
+				printerr("[smoke] FAIL: missing bias icon %s" % ipath)
+				icons_ok = false
+				ok = false
+		if UiIcons.bias_icon_path("career", true) != "res://assets/ui/icons/icon_bias_crisis.png":
+			printerr("[smoke] FAIL: crisis flag should map to crisis icon")
+			icons_ok = false
+			ok = false
+		if icons_ok:
+			print("[smoke] hub bias icons OK")
 	var res_src5 := FileAccess.get_file_as_string("res://scripts/month_resolve.gd")
 	if "last_crisis_kind" not in res_src5 or "climate_label" not in res_src5:
 		printerr("[smoke] FAIL: resolve missing climate/crisis UI")
