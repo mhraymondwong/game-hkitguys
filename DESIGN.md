@@ -1,4 +1,4 @@
-# 《香港IT人》— 玩法規格（v2.0.1）
+# 《香港IT人》— 玩法規格（v2.0.3）
 
 > 專案 id／資料夾：**hkitguy**  
 > 對外名稱：**《香港IT人》**  
@@ -40,6 +40,25 @@
 > - 已否決：15 年短養成、三段時間壓縮、每年僅 4 格、暫名「螢幕前的他」、HTML 當最終產品
 
 ---
+
+
+## 主封面（Key Art）— LOCKED 2026-10-24
+
+- **鎖款**：C3 科技 Logo（海傍日落展望）
+- **檔案**：`assets/ui/cover_keyart.jpg`（備份 `shots/covers/LOCKED-C3-cover.jpg`）
+- **中文標題**：風格化「香港IT人」（「IT」青藍霓虹嵌字）
+- **英文 Slogan**：
+  - Don't just debug tickets — debug your future.
+  - Graduate today. Lead someday. Own every month in between.
+- 候選草稿：`shots/covers/A–E`、`C2`、`C3`
+
+
+
+### 橫向載入圖（Loading）— LOCKED
+- **檔案**：`assets/ui/cover_landscape.jpg`／`assets/ui/boot_splash.png`（1280×720）
+- **用途**：代替 Godot 預設 Boot Splash；Web `build/web/index.png` 同步用此圖
+- `project.godot`：`boot_splash/image=res://assets/ui/boot_splash.png`（fullsize＋filter）
+
 
 ## A. HTML 簡單版 — 僅參考（非主線）
 
