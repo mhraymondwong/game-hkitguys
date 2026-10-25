@@ -71,12 +71,8 @@ static func month_result_fullbody_path(gs: Node = null) -> String:
 	return fullbody_path(gs)
 
 
-## Hub / month cinematic shell: standing suit (not cropped badge). Hoodie if resting.
-static func cinematic_stage_path(gs: Node = null) -> String:
-	var act_id := _act_id(gs)
-	var bias := _act_bias(gs)
-	if act_id == "deep-rest" or bias == "rest" or act_id in ["team-lunch", "cha-chaan-teng-round"]:
-		return FULLBODY_HOODIE
+## Hub / month cinematic shell: always transparent stand_suit PNG (no JPG studio floor).
+static func cinematic_stage_path(_gs: Node = null) -> String:
 	return FULLBODY_STAND_SUIT
 
 

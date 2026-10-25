@@ -13,7 +13,7 @@ const CLIMATES := ["booming", "balanced", "freezing"]
 
 const LABELS := {
 	"booming": "景氣旺",
-	"balanced": "市況平穩",
+	"balanced": "平穩",
 	"freezing": "寒冬／凍招"
 }
 
