@@ -9,10 +9,11 @@ extends RefCounted
 ##   2. confident — health ≥ 70
 ##                OR last id in {upward-chat, team-lunch, feature-sprint}
 ##   3. else portrait_badge.jpg
-## Fullbody (month_resolve / month_result):
+## Fullbody (mood picker — title/offer / non-cinematic):
 ##   1. hoodie — last id deep-rest OR bias rest OR id team-lunch
 ##   2. formal — last id upward-chat OR title/context hints interview/boss
 ##   3. else fullbody.jpg
+## Cinematic hub/month stage: cinematic_stage_path → stand_suit (hoodie if rest).
 ## Priority: check tired before confident; hoodie before formal.
 
 
@@ -23,6 +24,7 @@ const PORTRAIT_CONFIDENT := DIR + "portrait_confident.jpg"
 const FULLBODY_DEFAULT := DIR + "fullbody.jpg"
 const FULLBODY_HOODIE := DIR + "fullbody_hoodie.jpg"
 const FULLBODY_FORMAL := DIR + "fullbody_formal.jpg"
+const FULLBODY_STAND_SUIT := DIR + "fullbody_stand_suit.png"
 
 const ALL_FILES := [
 	PORTRAIT_DEFAULT,
@@ -31,6 +33,7 @@ const ALL_FILES := [
 	FULLBODY_DEFAULT,
 	FULLBODY_HOODIE,
 	FULLBODY_FORMAL,
+	FULLBODY_STAND_SUIT,
 ]
 
 const GRIND_IDS := ["oncall-night", "war-room", "ticket-grind", "patch-window", "typhoon-wfh", "ransomware-drill", "mtr-overtime", "vpn-firefight", "cloud-migration"]
@@ -66,6 +69,15 @@ static func fullbody_path(gs: Node = null) -> String:
 ## month_result first month: default fullbody; light confident portrait if health high.
 static func month_result_fullbody_path(gs: Node = null) -> String:
 	return fullbody_path(gs)
+
+
+## Hub / month cinematic shell: standing suit (not cropped badge). Hoodie if resting.
+static func cinematic_stage_path(gs: Node = null) -> String:
+	var act_id := _act_id(gs)
+	var bias := _act_bias(gs)
+	if act_id == "deep-rest" or bias == "rest" or act_id in ["team-lunch", "cha-chaan-teng-round"]:
+		return FULLBODY_HOODIE
+	return FULLBODY_STAND_SUIT
 
 
 static func month_result_portrait_path(gs: Node = null) -> String:

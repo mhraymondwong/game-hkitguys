@@ -1,5 +1,5 @@
 extends Control
-## 第一個月結果 — E glass；→ 繼續打工（Hub）／返回標題
+## 第一個月結果 — cinematic full-art：左站立立繪＋右可捲敘事＋底 sticky CTA
 
 
 func _ready() -> void:
@@ -13,47 +13,68 @@ func _ready() -> void:
 func _build_ui() -> void:
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 56)
-	margin.add_theme_constant_override("margin_right", 56)
-	margin.add_theme_constant_override("margin_top", 28)
-	margin.add_theme_constant_override("margin_bottom", 28)
+	margin.add_theme_constant_override("margin_left", 28)
+	margin.add_theme_constant_override("margin_right", 28)
+	margin.add_theme_constant_override("margin_top", 16)
+	margin.add_theme_constant_override("margin_bottom", 14)
 	add_child(margin)
 
-	var card := UiStyle.make_card_panel()
-	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	card.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	margin.add_child(card)
+	# Left stage full-height (feet on floor); right = glass + sticky CTA
+	var root_h := HBoxContainer.new()
+	root_h.add_theme_constant_override("separation", 16)
+	root_h.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root_h.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	margin.add_child(root_h)
 
-	var main_row := HBoxContainer.new()
-	main_row.add_theme_constant_override("separation", 24)
-	card.add_child(main_row)
+	var stage_path := ProtagonistArt.cinematic_stage_path(GameState)
+	var stage := UiStyle.make_cinematic_stat_stage(stage_path, GameState.stats_dict(), Vector2(460, 640))
+	root_h.add_child(stage)
 
-	var art_path := ProtagonistArt.month_result_fullbody_path(GameState)
-	var art := UiStyle.make_art_frame(art_path, Vector2(158, 380), true)
-	main_row.add_child(art)
+	var right_col := VBoxContainer.new()
+	right_col.add_theme_constant_override("separation", 10)
+	right_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right_col.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	root_h.add_child(right_col)
+
+	var right := PanelContainer.new()
+	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	right.add_theme_stylebox_override(
+		"panel",
+		UiStyle.glass_style(GameConfig.COL_GLASS_STRONG, GameConfig.COL_RIM_CYAN, 20, true)
+	)
+	right_col.add_child(right)
 
 	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 14)
+	v.add_theme_constant_override("separation", 10)
 	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	v.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	main_row.add_child(v)
+	right.add_child(v)
 
 	v.add_child(UiStyle.make_step_tag("入職滿月"))
 
 	var h := Label.new()
 	h.text = "第一個月 · %s" % GameState.job_title
 	h.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	UiStyle.apply_label(h, 26)
+	UiStyle.apply_label(h, 24)
 	v.add_child(h)
 
-	var flavour_panel := UiStyle.make_flavour_panel()
-	flavour_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	v.add_child(flavour_panel)
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	v.add_child(scroll)
 
+	var scroll_body := VBoxContainer.new()
+	scroll_body.add_theme_constant_override("separation", 10)
+	scroll_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(scroll_body)
+
+	var flavour_panel := UiStyle.make_flavour_panel()
+	scroll_body.add_child(flavour_panel)
 	var flavour := Label.new()
 	flavour.text = GameState.last_month_flavour
 	flavour.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	flavour.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	UiStyle.apply_label(flavour, 15)
 	flavour_panel.add_child(flavour)
 
@@ -66,38 +87,12 @@ func _build_ui() -> void:
 		GameState.company_name
 	]
 	meta.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	UiStyle.apply_label(meta, 13, true)
+	UiStyle.apply_label(meta, 12, true)
 	v.add_child(meta)
 
-	var stats_head := Label.new()
-	stats_head.text = "目前狀態"
-	UiStyle.apply_label(stats_head, 14, true)
-	stats_head.add_theme_color_override("font_color", GameConfig.COL_RIM_GOLD)
-	v.add_child(stats_head)
-
-	var stats_row := HBoxContainer.new()
-	stats_row.add_theme_constant_override("separation", 10)
-	v.add_child(stats_row)
-
-	var vals := GameState.stats_dict()
-	for k in ["infra", "app", "manage", "influence", "health"]:
-		stats_row.add_child(
-			UiStyle.make_stat_chip(GameConfig.stat_label(k), str(vals.get(k, 0)), GameConfig.bar_color(k))
-		)
-
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 12)
-	v.add_child(row)
-
-	var continue_btn := Button.new()
-	continue_btn.text = "繼續打工"
-	continue_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	UiStyle.apply_button(continue_btn, true)
-	continue_btn.pressed.connect(func() -> void:
-		GameState.prepare_next_month()
-		get_tree().change_scene_to_file("res://scenes/hub.tscn")
-	)
-	row.add_child(continue_btn)
+	var bar := UiStyle.make_sticky_cta_bar()
+	right_col.add_child(bar)
+	var row: HBoxContainer = bar.get_node("Row")
 
 	var title_btn := Button.new()
 	title_btn.text = "返回標題"
@@ -108,8 +103,16 @@ func _build_ui() -> void:
 	)
 	row.add_child(title_btn)
 
-	var tip := Label.new()
-	tip.text = "蜜月期捱完。想繼續嘅話，下個月你話事。"
-	tip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	UiStyle.apply_label(tip, 12, true)
-	v.add_child(tip)
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(spacer)
+
+	var continue_btn := Button.new()
+	continue_btn.text = "繼續打工"
+	continue_btn.custom_minimum_size = Vector2(200, 54)
+	UiStyle.apply_button(continue_btn, true)
+	continue_btn.pressed.connect(func() -> void:
+		GameState.prepare_next_month()
+		get_tree().change_scene_to_file("res://scenes/hub.tscn")
+	)
+	row.add_child(continue_btn)

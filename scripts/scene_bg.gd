@@ -6,18 +6,21 @@ extends RefCounted
 
 const DIR := "res://assets/bg/"
 const BG_JUNIOR := DIR + "stage_junior_morning.jpg"
+const BG_SUNSET := DIR + "stage_office_sunset.jpg"
 const BG_OVERTIME := DIR + "stage_overtime_night.jpg"
 const BG_LEAD := DIR + "stage_lead_meeting.jpg"
 const BG_MGMT := DIR + "stage_mgmt_harbour.jpg"
 const BG_TYPHOON := DIR + "mood_typhoon_wfh.jpg"
 
-const FALLBACK_HUB := "res://assets/job_bg.jpg"
-const FALLBACK_MONTH := "res://assets/month_bg.jpg"
+## Cinematic hub/month default (v2.0.7); mood overrides still win.
+const FALLBACK_HUB := BG_SUNSET
+const FALLBACK_MONTH := BG_SUNSET
 const FALLBACK_TITLE := "res://assets/title_bg.jpg"
 const FALLBACK_EDU := "res://assets/edu_bg.jpg"
 
 const ALL_FILES := [
 	BG_JUNIOR,
+	BG_SUNSET,
 	BG_OVERTIME,
 	BG_LEAD,
 	BG_MGMT,
@@ -47,10 +50,10 @@ static func path_for(gs: Node = null, fallback: String = FALLBACK_MONTH) -> Stri
 	if season in ["summer", "autumn"] and act in TYPHOON_SEASON_GRIND:
 		return BG_TYPHOON
 
-	# 2. Career stage by job_level
+	# 2. Career stage by job_level (junior/empty → cinematic sunset office)
 	match level:
 		"junior", "":
-			return BG_JUNIOR
+			return BG_SUNSET
 		"mid":
 			pass  # mid → overtime check, else scene fallback (documented)
 		"senior", "lead":
@@ -60,8 +63,8 @@ static func path_for(gs: Node = null, fallback: String = FALLBACK_MONTH) -> Stri
 		_:
 			if "manager" in level or "director" in level or "head" in level:
 				return BG_MGMT
-			# missing / unknown → junior morning
-			return BG_JUNIOR
+			# missing / unknown → sunset office (cinematic default)
+			return BG_SUNSET
 
 	# 3. Overtime grind (mid fallthrough)
 	if act in OVERTIME_IDS:

@@ -53,10 +53,10 @@ func _run() -> void:
 	gs.select_education("uni")
 	gs.select_job("junior-dev")
 	gs.accept_offer_and_run_first_month()
-	# 04: junior morning atmosphere
+	# 04: cinematic sunset (junior default)
 	gs.job_level = "junior"
 	gs.last_activity_id = ""
-	print("[phase2-shot] expect junior bg=", SceneBg.path_for(gs, SceneBg.FALLBACK_MONTH))
+	print("[phase2-shot] expect sunset bg=", SceneBg.path_for(gs, SceneBg.FALLBACK_MONTH))
 	if not await _shot("res://scenes/month_result.tscn", "res://shots/04_month.png"):
 		quit(1)
 		return

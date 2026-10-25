@@ -1253,18 +1253,18 @@ func _run() -> void:
 	gs.month = 1  # winter — no seasonal typhoon
 	gs.last_activity_id = "feature-sprint"
 	gs.job_level = "junior"
-	if SceneBg.path_for(gs, SceneBg.FALLBACK_HUB) != SceneBg.BG_JUNIOR:
-		printerr("[smoke] FAIL: junior → junior_morning got %s" % SceneBg.path_for(gs, SceneBg.FALLBACK_HUB))
+	if SceneBg.path_for(gs, SceneBg.FALLBACK_HUB) != SceneBg.BG_SUNSET:
+		printerr("[smoke] FAIL: junior → office_sunset got %s" % SceneBg.path_for(gs, SceneBg.FALLBACK_HUB))
 		ok = false
 	else:
-		print("[smoke] SceneBg junior OK")
+		print("[smoke] SceneBg junior→sunset OK")
 
 	gs.job_level = ""
-	if SceneBg.path_for(gs, SceneBg.FALLBACK_HUB) != SceneBg.BG_JUNIOR:
-		printerr("[smoke] FAIL: empty level → junior")
+	if SceneBg.path_for(gs, SceneBg.FALLBACK_HUB) != SceneBg.BG_SUNSET:
+		printerr("[smoke] FAIL: empty level → sunset")
 		ok = false
 	else:
-		print("[smoke] SceneBg empty→junior OK")
+		print("[smoke] SceneBg empty→sunset OK")
 
 	gs.job_level = "senior"
 	if SceneBg.path_for(gs, SceneBg.FALLBACK_MONTH) != SceneBg.BG_LEAD:
@@ -1322,6 +1322,26 @@ func _run() -> void:
 		ok = false
 	else:
 		print("[smoke] SceneBg wired hub/resolve/result OK")
+
+	# Cinematic full-art shell (v2.0.7)
+	var ui_src := FileAccess.get_file_as_string("res://scripts/ui_style.gd")
+	if "make_cinematic_stat_stage" not in ui_src or "make_sticky_cta_bar" not in ui_src:
+		printerr("[smoke] FAIL: UiStyle missing cinematic helpers")
+		ok = false
+	elif "make_cinematic_stat_stage" not in hub_bg or "make_cinematic_stat_stage" not in res_bg or "make_cinematic_stat_stage" not in mres_bg:
+		printerr("[smoke] FAIL: hub/month not on cinematic stage")
+		ok = false
+	elif "cinematic_stage_path" not in FileAccess.get_file_as_string("res://scripts/protagonist_art.gd"):
+		printerr("[smoke] FAIL: ProtagonistArt missing cinematic_stage_path")
+		ok = false
+	elif not FileAccess.file_exists(ProjectSettings.globalize_path(ProtagonistArt.FULLBODY_STAND_SUIT)):
+		printerr("[smoke] FAIL: missing stand_suit asset")
+		ok = false
+	elif not FileAccess.file_exists(ProjectSettings.globalize_path(SceneBg.BG_SUNSET)):
+		printerr("[smoke] FAIL: missing office_sunset asset")
+		ok = false
+	else:
+		print("[smoke] cinematic full-art shell OK")
 
 	print("[smoke] Phase 3b SceneBg OK")
 

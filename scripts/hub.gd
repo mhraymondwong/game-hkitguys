@@ -1,5 +1,5 @@
 extends Control
-## 月計劃 Hub — E glass；季節活動格＋存檔＋地圖＋公司／職涯／市況／危機（Phase 5.x）
+## 月計劃 Hub — cinematic full-art shell：左站立立繪＋右玻璃活動＋底 sticky CTA
 
 
 var _list: VBoxContainer
@@ -23,44 +23,31 @@ func _ready() -> void:
 func _build_ui() -> void:
 	var margin := MarginContainer.new()
 	margin.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	margin.add_theme_constant_override("margin_left", 36)
-	margin.add_theme_constant_override("margin_right", 36)
-	margin.add_theme_constant_override("margin_top", 20)
-	margin.add_theme_constant_override("margin_bottom", 20)
+	margin.add_theme_constant_override("margin_left", 28)
+	margin.add_theme_constant_override("margin_right", 28)
+	margin.add_theme_constant_override("margin_top", 16)
+	margin.add_theme_constant_override("margin_bottom", 14)
 	add_child(margin)
 
-	var root_v := VBoxContainer.new()
-	root_v.add_theme_constant_override("separation", 10)
-	root_v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	root_v.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	margin.add_child(root_v)
+	# Left stage full-height (feet on floor); right = glass + sticky CTA
+	var root_h := HBoxContainer.new()
+	root_h.add_theme_constant_override("separation", 16)
+	root_h.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	root_h.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	margin.add_child(root_h)
 
-	var line1 := "%s　｜　%s　·　%s" % [
-		GameState.calendar_label(),
-		GameState.job_title,
-		GameState.job_level_label()
-	]
-	var line2 := "%s　｜　%s　｜　市況 %s　｜　%s　｜　績效 %d　｜　年資 %d 月　｜　HK$%s／月" % [
-		GameState.company_name,
-		GameState.company_state_label(),
-		GameState.climate_label(),
-		GameConfig.track_label(GameState.track),
-		GameState.performance,
-		GameState.tenure_months,
-		GameState.salary
-	]
-	root_v.add_child(UiStyle.make_chrome_header(line1, line2))
+	# LEFT ~40%: cinematic standing stage (no glass card)
+	var stage_path := ProtagonistArt.cinematic_stage_path(GameState)
+	var stage := UiStyle.make_cinematic_stat_stage(stage_path, GameState.stats_dict(), Vector2(460, 640))
+	root_h.add_child(stage)
 
-	var body := HBoxContainer.new()
-	body.add_theme_constant_override("separation", 18)
-	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	root_v.add_child(body)
+	var right_col := VBoxContainer.new()
+	right_col.add_theme_constant_override("separation", 10)
+	right_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	right_col.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	root_h.add_child(right_col)
 
-	var portrait := ProtagonistArt.portrait_path(GameState)
-	var ring := UiStyle.make_stat_ring_portrait(portrait, GameState.stats_dict(), Vector2(300, 380))
-	body.add_child(ring)
-
+	# RIGHT ~55%: one large glass panel
 	var right := PanelContainer.new()
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	right.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -68,12 +55,37 @@ func _build_ui() -> void:
 		"panel",
 		UiStyle.glass_style(GameConfig.COL_GLASS_STRONG, GameConfig.COL_RIM_CYAN, 20, true)
 	)
-	body.add_child(right)
+	right_col.add_child(right)
 
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 8)
 	v.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	right.add_child(v)
+
+	# Slim status inside glass (not dense top chrome chips)
+	var status := Label.new()
+	status.text = "%s　｜　%s　·　%s　｜　HK$%s／月" % [
+		GameState.calendar_label(),
+		GameState.job_title,
+		GameState.job_level_label(),
+		GameState.salary
+	]
+	status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiStyle.apply_label(status, 13, true)
+	status.add_theme_color_override("font_color", GameConfig.COL_TAG_FG)
+	v.add_child(status)
+
+	var status2 := Label.new()
+	status2.text = "%s　｜　%s　｜　市況 %s　｜　績效 %d　｜　年資 %d 月" % [
+		GameState.company_name,
+		GameState.company_state_label(),
+		GameState.climate_label(),
+		GameState.performance,
+		GameState.tenure_months
+	]
+	status2.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiStyle.apply_label(status2, 11, true)
+	v.add_child(status2)
 
 	var step_txt := "本月計劃 · %s" % GameState.season_label()
 	if GameState.is_crisis_month():
@@ -133,7 +145,7 @@ func _build_ui() -> void:
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.custom_minimum_size = Vector2(0, 180)
+	scroll.custom_minimum_size = Vector2(0, 160)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	v.add_child(scroll)
 
@@ -156,9 +168,10 @@ func _build_ui() -> void:
 	_save_row.add_theme_constant_override("separation", 8)
 	v.add_child(_save_row)
 
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 10)
-	root_v.add_child(row)
+	# BOTTOM sticky CTA bar
+	var bar := UiStyle.make_sticky_cta_bar()
+	right_col.add_child(bar)
+	var row: HBoxContainer = bar.get_node("Row")
 
 	var title_btn := Button.new()
 	title_btn.text = "返回標題"
@@ -179,9 +192,13 @@ func _build_ui() -> void:
 	)
 	row.add_child(map_btn)
 
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(spacer)
+
 	_confirm = Button.new()
 	_confirm.text = "確認本月活動"
-	_confirm.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_confirm.custom_minimum_size = Vector2(220, 54)
 	UiStyle.apply_button(_confirm, true)
 	_confirm.disabled = true
 	_confirm.pressed.connect(_on_confirm)

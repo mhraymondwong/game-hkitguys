@@ -466,23 +466,36 @@ static func make_stat_ring_portrait(portrait_path: String, stats: Dictionary, si
 	return root
 
 
-static func _make_stat_orb(stat_key: String, value: int) -> PanelContainer:
+static func _make_stat_orb(stat_key: String, value: int, orb_size: float = 68.0, glossy: bool = false) -> PanelContainer:
 	var col := GameConfig.bar_color(stat_key)
 	var orb := PanelContainer.new()
-	orb.custom_minimum_size = Vector2(68, 68)
+	var s := int(orb_size)
+	orb.custom_minimum_size = Vector2(s, s)
 	var sb := StyleBoxFlat.new()
-	# Fill intensity scales with value
 	var t := clampf(float(value) / float(GameConfig.STAT_MAX), 0.15, 1.0)
-	sb.bg_color = Color(col.r, col.g, col.b, 0.25 + 0.45 * t)
-	sb.border_color = Color(col.r, col.g, col.b, 0.55 + 0.4 * t)
-	sb.set_border_width_all(3)
-	sb.set_corner_radius_all(34)
+	if glossy:
+		# Liquid glass fill like cinematic mock — vivid colour + soft white core feel
+		sb.bg_color = Color(
+			lerpf(col.r, 1.0, 0.22),
+			lerpf(col.g, 1.0, 0.18),
+			lerpf(col.b, 1.0, 0.12),
+			0.42 + 0.38 * t
+		)
+		sb.border_color = Color(col.r, col.g, col.b, 0.92)
+		sb.set_border_width_all(4)
+		sb.shadow_color = Color(col.r, col.g, col.b, 0.75)
+		sb.shadow_size = 22
+	else:
+		sb.bg_color = Color(col.r, col.g, col.b, 0.28 + 0.48 * t)
+		sb.border_color = Color(col.r, col.g, col.b, 0.55 + 0.4 * t)
+		sb.set_border_width_all(3)
+		sb.shadow_color = Color(col.r, col.g, col.b, 0.6)
+		sb.shadow_size = 16 if s >= 78 else 12
+	sb.set_corner_radius_all(int(s / 2.0))
 	sb.content_margin_left = 4
 	sb.content_margin_right = 4
-	sb.content_margin_top = 8
-	sb.content_margin_bottom = 8
-	sb.shadow_color = Color(col.r, col.g, col.b, 0.55)
-	sb.shadow_size = 12
+	sb.content_margin_top = 10 if s >= 78 else 8
+	sb.content_margin_bottom = 10 if s >= 78 else 8
 	sb.shadow_offset = Vector2(0, 0)
 	orb.add_theme_stylebox_override("panel", sb)
 
@@ -494,17 +507,141 @@ static func _make_stat_orb(stat_key: String, value: int) -> PanelContainer:
 	var name_l := Label.new()
 	name_l.text = GameConfig.stat_label(stat_key)
 	name_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	apply_label(name_l, 11)
+	apply_label(name_l, 13 if glossy else (12 if s >= 78 else 11))
 	name_l.add_theme_color_override("font_color", GameConfig.COL_WHITE)
 	v.add_child(name_l)
 
 	var val_l := Label.new()
 	val_l.text = str(value)
 	val_l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	apply_label(val_l, 16)
+	apply_label(val_l, 20 if glossy else (18 if s >= 78 else 16))
 	val_l.add_theme_color_override("font_color", GameConfig.COL_WHITE)
 	v.add_child(val_l)
 	return orb
+
+
+## Cinematic left stage: standing art + floating orbs (NO glass card).
+## Figure bottom-anchored to stage floor (feet near CTA / ground).
+static func make_cinematic_stat_stage(
+	portrait_path: String,
+	stats: Dictionary,
+	size: Vector2 = Vector2(460, 620)
+) -> Control:
+	var root := Control.new()
+	root.name = "CinematicStage"
+	root.custom_minimum_size = size
+	root.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	root.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	root.clip_contents = false
+
+	var vig := ColorRect.new()
+	vig.name = "StageVignette"
+	vig.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	vig.color = Color(0.04, 0.07, 0.14, 0.05)
+	vig.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(vig)
+
+	# Bottom-anchored figure — aspect-matched rect so feet sit on floor (no letterbox)
+	var art := TextureRect.new()
+	art.name = "StageFullbody"
+	art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if ResourceLoader.exists(portrait_path) or FileAccess.file_exists(ProjectSettings.globalize_path(portrait_path)):
+		art.texture = load(portrait_path)
+	root.add_child(art)
+
+	var tex_aspect := 320.0 / 1114.0
+	if art.texture != null:
+		var ts: Vector2 = art.texture.get_size()
+		if ts.y > 1.0:
+			tex_aspect = ts.x / ts.y
+
+	var ring := TextureRect.new()
+	ring.name = "OrbRingHint"
+	ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ring.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	ring.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	var ring_path := "res://assets/ui/orb_ring_hint.png"
+	if ResourceLoader.exists(ring_path) or FileAccess.file_exists(ProjectSettings.globalize_path(ring_path)):
+		ring.texture = load(ring_path)
+	root.add_child(ring)
+
+	var keys := ["app", "infra", "manage", "influence", "health"]
+	var angles_deg := [-90.0, -150.0, -30.0, 150.0, 30.0]
+	var orb_px := 88.0
+	var orbs: Array = []
+	for i in keys.size():
+		var key: String = keys[i]
+		var val := int(stats.get(key, 0))
+		var orb := _make_stat_orb(key, val, orb_px, true)
+		orb.set_meta("stat_key", key)
+		orb.set_meta("ang_deg", angles_deg[i])
+		root.add_child(orb)
+		orbs.append(orb)
+
+	var layout := func() -> void:
+		var w := root.size.x
+		var h := root.size.y
+		if w < 8.0 or h < 8.0:
+			w = size.x
+			h = size.y
+		# Planted low: feet on floor, ~76% height so head clears top App orb
+		var fh := h * 0.76
+		var fw := fh * tex_aspect
+		if fw > w * 0.88:
+			fw = w * 0.88
+			fh = fw / tex_aspect
+		art.anchor_left = 0.5
+		art.anchor_right = 0.5
+		art.anchor_top = 1.0
+		art.anchor_bottom = 1.0
+		art.offset_left = -fw * 0.5
+		art.offset_right = fw * 0.5
+		art.offset_top = -fh
+		art.offset_bottom = 0.0
+		var rcx := w * 0.50
+		# Ring only (figure locked): larger + slightly higher; App stays clear of head
+		var rcy := h - fh * 0.78 - h * 0.08
+		var ring_d := minf(w, h) * 0.92
+		ring.size = Vector2(ring_d, ring_d)
+		ring.position = Vector2(rcx - ring_d * 0.5, rcy - ring_d * 0.5)
+		var radius := ring_d * (200.0 / 512.0)
+		var half := orb_px * 0.5
+		for orb in orbs:
+			var ang := deg_to_rad(float(orb.get_meta("ang_deg")))
+			var ox := rcx + cos(ang) * radius - half
+			var oy := rcy + sin(ang) * radius - half
+			orb.position = Vector2(
+				clampf(ox, 2.0, w - orb_px - 2.0),
+				clampf(oy, 2.0, h - orb_px - 2.0)
+			)
+
+	root.resized.connect(layout)
+	root.ready.connect(layout)
+	root.set_meta("_cine_layout", layout)
+	layout.call_deferred()
+
+	return root
+
+
+## Thin sticky bottom CTA strip (primary CTA on the right). Returns bar; row is child "Row".
+static func make_sticky_cta_bar() -> PanelContainer:
+	var bar := PanelContainer.new()
+	bar.name = "StickyCtaBar"
+	var sb := glass_style(Color(0.08, 0.12, 0.22, 0.72), GameConfig.COL_TILE_BORDER, 14, false)
+	sb.content_margin_left = 14
+	sb.content_margin_right = 14
+	sb.content_margin_top = 8
+	sb.content_margin_bottom = 8
+	sb.shadow_size = 8
+	sb.shadow_color = Color(0.05, 0.08, 0.16, 0.4)
+	bar.add_theme_stylebox_override("panel", sb)
+	var row := HBoxContainer.new()
+	row.name = "Row"
+	row.add_theme_constant_override("separation", 10)
+	bar.add_child(row)
+	return bar
 
 
 ## Inner flavour / quote glass box.

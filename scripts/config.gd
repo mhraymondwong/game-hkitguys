@@ -44,11 +44,11 @@ const COL_APP := Color("4AA8F0")
 const COL_GOOD := Color("4ADE80")
 
 # E mock ring colours: Infra green / App blue / 管理 cyan / 影響 gold / 健康 red
-const COL_BAR_INFRA := Color("3DDB8A")
-const COL_BAR_APP := Color("4AA8F0")
-const COL_BAR_MANAGE := Color("3DE0E8")
-const COL_BAR_INFLUENCE := Color("F0C040")
-const COL_BAR_HEALTH := Color("F06070")
+const COL_BAR_INFRA := Color("2EE87A")
+const COL_BAR_APP := Color("3B9EFF")
+const COL_BAR_MANAGE := Color("3AD4F0")
+const COL_BAR_INFLUENCE := Color("FFC933")
+const COL_BAR_HEALTH := Color("FF5A6A")
 const COL_BAR_TRACK := Color(1.0, 1.0, 1.0, 0.18)
 
 const COL_CHIP := Color(0.20, 0.32, 0.48, 0.55)

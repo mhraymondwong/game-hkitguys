@@ -1,4 +1,4 @@
-# 《香港IT人》— 玩法規格（v2.0.5）
+# 《香港IT人》— 玩法規格（v2.0.13）
 
 > 專案 id／資料夾：**hkitguy**  
 > 對外名稱：**《香港IT人》**  
@@ -29,6 +29,9 @@
 > - **UI 殼 LOCKED（Raymond，2026-10-22）**：**E glass RPG**（否決 hybrid A＋E／A／B）；示意 `shots/ui_mocks/E_glass_rpg.jpg`
 > - **步驟 tag 對比（Raymond，2026-10-24）**：棄用淡金字於玻璃上；`COL_TAG_FG`／`COL_TAG_BG`＋cyan rim pill（`make_step_tag`）
 - **Hub 活動圖示（Raymond，2026-10-24）**：Grok Imagine bias 8 圖 `assets/ui/icons/icon_bias_*.png`；`UiIcons.bias_icon_path`；危機活動用 `icon_bias_crisis`
+- **月結 layout B LOCKED（Raymond，2026-10-25）**：左環立繪＋右可捲敘事＋底欄常在（`month_resolve`／`month_result`）；移除底部「目前狀態」chips；overflow 修復
+- **Cinematic 腳貼地（2026-10-25）**：左 stage 滿高至底邊（CTA 只掛右欄）；立繪底錨＋紋理比例無 letterbox
+- **Cinematic full-art LOCKED（Raymond，2026-10-25，full-art）**：本月計劃／月結／入職滿月共用殼——全幅夕陽辦公室底、左全高站立立繪＋浮動屬性球（無玻璃卡框）、右大玻璃板、底 sticky CTA；資產 `fullbody_stand_suit.png`＋`stage_office_sunset.jpg`；`UiStyle.make_cinematic_stat_stage`／`make_sticky_cta_bar`；`ProtagonistArt.cinematic_stage_path`；`SceneBg` junior／fallback → sunset（mood 覆寫仍在）
 > - **HUD／header 規則**：chrome **唔好印遊戲名「香港IT人」**（怪）；標題畫面主標題可保留；hub／學歷／職位／Offer／月結 header 只顯示年月／職位／薪／狀態
 > - **開局打磨 A DONE（Raymond，2026-10-22）**：title→education→job→offer→month_result；glass 步驟 pill；粵語微文案；CTA「繼續 · …」；smoke 加 opening polish 斷言；截圖 01–04／03b
 > - **Phase 3a 系統 DONE（Raymond，2026-10-22）**：季節權重＋活動／事件表＋`fast_forward_months`；美術 Imagine 留 3b
@@ -302,7 +305,7 @@ Helpdesk／機房／開發樓層／Boardroom／茶餐廳／電腦中心／港鐵
 | `fullbody_hoodie.jpg` | 休閒 hoodie 全身（休息／週末） |
 | `fullbody_formal.jpg` | 正裝全身（向上管理／面試感） |
 
-**切換一覽**（`scripts/protagonist_art.gd`）：portrait＝健康≤35 或 grind 活動且健康≤50 → tired；健康≥70 或 upward-chat／team-lunch／feature-sprint → confident；否則 default。fullbody＝deep-rest／rest／team-lunch → hoodie；upward-chat／面試提示 → formal；否則 default。hub 用 portrait；month_resolve 用 fullbody；title／offer 維持 default。
+**切換一覽**（`scripts/protagonist_art.gd`）：portrait＝健康≤35 或 grind 活動且健康≤50 → tired；健康≥70 或 upward-chat／team-lunch／feature-sprint → confident；否則 default。fullbody＝deep-rest／rest／team-lunch → hoodie；upward-chat／面試提示 → formal；否則 default。**cinematic_stage_path**（hub／月結殼）＝預設 `fullbody_stand_suit.png`；rest／茶餐廳 → hoodie。portrait 環立繪 helper 仍保留；title／offer 維持 default／工卡。
 
 
 ### Phase C — Web／HTML5 匯出 ✅ DONE（2026-10-22）
@@ -321,8 +324,8 @@ Helpdesk／機房／開發樓層／Boardroom／茶餐廳／電腦中心／港鐵
 | 元素 | 實作 |
 |------|------|
 | 面板 | frosted glass（半透明藍灰）＋ cyan／gold 柔光邊（`UiStyle.glass_style`） |
-| Hub | header＝年月／職位／公司／薪（**無遊戲名**）；左＝立繪＋五色屬性 orb 環；右＝玻璃活動格＋**bias Imagine 圖示**（選取 cyan glow）；底＝軟橙 CTA |
-| 開局／月結 | 同 glass 語言；`make_card_panel`／`make_flavour_panel`／彩色 `make_stat_chip` |
+| Hub | **cinematic full-art**：無密集 header chips；左＝`make_cinematic_stat_stage`（站立西裝＋大 orb）；右＝大玻璃（slim 狀態行＋活動格＋bias 圖示）；底＝`make_sticky_cta_bar`（確認本月活動） |
+| 開局／月結 | 開局仍 `make_card_panel`；**月結／滿月／Hub**＝cinematic shell（左站立立繪＋右 Scroll＋sticky CTA）；禁 HUD 遊戲名 |
 | 標題 | 主標題可顯示《香港IT人》；glass menu card＋橙「開始入行」 |
 | 工卡 | badge header＝「員工證」（唔再印 HONG KONG IT／遊戲名） |
 | 背景 | 維持 morning-office-sky Imagine；wash 略加深等 glass 浮起 |
@@ -375,7 +378,7 @@ smoke PASS；重截 `shots/01`–`04`／`03b`。
 
 | 項目 | 內容 |
 |------|------|
-| 資產 | `assets/bg/`：`stage_junior_morning.jpg`／`stage_overtime_night.jpg`／`stage_lead_meeting.jpg`／`stage_mgmt_harbour.jpg`／`mood_typhoon_wfh.jpg` |
+| 資產 | `assets/bg/`：`stage_junior_morning.jpg`／**`stage_office_sunset.jpg`（cinematic 預設）**／`stage_overtime_night.jpg`／`stage_lead_meeting.jpg`／`stage_mgmt_harbour.jpg`／`mood_typhoon_wfh.jpg` |
 | Helper | `scripts/scene_bg.gd`（`class_name SceneBg`） |
 | 接線 | `hub.gd`／`month_resolve.gd`／`month_result.gd` → `SceneBg.apply_to`（title／edu／job／offer 仍用固定底） |
 | 切換優先序 | ① mood 颱風／黑雨（`typhoon-wfh`／`typhoon-signal`／夏秋＋oncall／war-room／vpn）→ ② `job_level`（junior／空→junior_morning；**mid→不選 stage，落入③④**；senior／lead→lead_meeting；manager+→harbour）→ ③ overtime 活動（oncall／war-room／mtr／vpn／patch）→ ④ 場景 fallback（hub=`job_bg`；月結=`month_bg`） |
@@ -448,7 +451,7 @@ smoke PASS；重截 `shots/01`–`04`／`03b`。
 
 ## Phase 1–2 Godot 範圍（摘要）
 
-**DONE（v2.0.1）**：Godot **4.7.2.stable** 開局＋月迴圈＋主角變體＋Web 匯出＋**E glass RPG**＋開局打磨＋季節／事件（37 活動／20 事件）＋**Phase 4** 存檔／地圖＋**Phase 5** 公司／升遷／跳槽＋**Phase 5.x** 勞動市場／裁員危機月＋**Phase 3b** 五款氛圍底（`SceneBg`）。標題空氛 **morning-office-sky**；主角錨點 **male-short-shirt-badge**。HTML simple 僅參考。**下一步**：額外職涯立繪／UI 框 MC；Phase 6 結局；Pages 部署另開。
+**DONE（v2.0.7）**：Godot **4.7.2.stable** 開局＋月迴圈＋主角變體＋Web 匯出＋**E glass RPG**＋**cinematic full-art**（hub／月結）＋開局打磨＋季節／事件（37 活動／20 事件）＋**Phase 4** 存檔／地圖＋**Phase 5** 公司／升遷／跳槽＋**Phase 5.x** 勞動市場／裁員危機月＋**Phase 3b** 氛圍底（`SceneBg`＋sunset 預設）。標題空氛 **morning-office-sky**；主角錨點 **male-short-shirt-badge**＋站立西裝。HTML simple 僅參考。**下一步**：stand_suit 去灰底／透明 PNG；Phase 6 結局；Pages 部署另開（未重匯 Web）。
 
 ---
 
@@ -456,6 +459,12 @@ smoke PASS；重截 `shots/01`–`04`／`03b`。
 
 | 版 | 日期 | 摘要 |
 |----|------|------|
+| v2.0.11 | 2026-10-25 | cinematic 主角底錨定＋App 固定頂部，強制頭／球空隙 |
+| v2.0.10 | 2026-10-25 | cinematic 對齊附圖：主角大腿以上比例、極座標球環、glossy 球色＋ring hint |
+| v2.0.9 | 2026-10-25 | cinematic 主角縮至 ~78% stage；App 球上移避開臉 |
+| v2.0.8 | 2026-10-25 | 站立立繪改透明底 PNG（chroma cutout），cinematic stage KEEP_ASPECT_CENTERED 叠夕陽辦公室 |
+| v2.0.7 | 2026-10-25 | Cinematic full-art：hub／month_resolve／month_result 共用左站立立繪＋右大玻璃＋底 sticky CTA；`make_cinematic_stat_stage`／`make_sticky_cta_bar`；`fullbody_stand_suit`＋`stage_office_sunset`；SceneBg junior／fallback→sunset；smoke PASS |
+| v2.0.6 | 2026-10-25 | 月結 layout B：左環立繪＋右可捲敘事＋底欄常在；移除「目前狀態」chips |
 | v2.0.5 | 2026-10-24 | Hub 活動列接 Grok Imagine bias 圖示（8 張 `assets/ui/icons/icon_bias_*.png`）；`UiIcons`；危機活動用 crisis 圖；選取仍 cyan glow |
 | v2.0.4 | 2026-10-24 | 步驟／區塊 tag 可讀性：`COL_TAG_FG`／`COL_TAG_BG`；`make_step_tag` 改 cyan-rim dark pill＋軟白字；月結職涯／勞動市場標籤同款；`COL_RIM_GOLD` 邊框不變 |
 | v2.0.1 | 2026-10-22 | Web 重匯 after Phase 5.x：`build/web` wasm≈38MiB／pck≈42MiB／合計≈80MiB；含勞動市場／裁員；未 Pages |
