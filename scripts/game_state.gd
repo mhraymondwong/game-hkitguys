@@ -27,12 +27,18 @@ var tenure_months: int = 0
 var performance: int = 50
 var on_probation: bool = false
 var probation_months_left: int = 0
+## One-shot: true on the resolve after probation clears (celebrate once).
+var last_probation_ended: bool = false
 var hunt_progress: int = 0
 
 var last_month_flavour: String = ""
 var last_activity_id: String = ""
 var last_activity_title: String = ""
 var last_deltas: Dictionary = {}
+## Month-resolve transparency: performance / salary change this resolve
+var last_performance_delta: int = 0
+var last_salary_delta: int = 0
+var last_salary_before: int = 0
 
 var last_event_id: String = ""
 var last_event_title: String = ""
@@ -103,11 +109,15 @@ func reset() -> void:
 	performance = 50
 	on_probation = false
 	probation_months_left = 0
+	last_probation_ended = false
 	hunt_progress = 0
 	last_month_flavour = ""
 	last_activity_id = ""
 	last_activity_title = ""
 	last_deltas = {}
+	last_performance_delta = 0
+	last_salary_delta = 0
+	last_salary_before = 0
 	_clear_event()
 	_clear_map_result()
 	map_used_this_month = false
@@ -136,12 +146,16 @@ func select_education(edu_id: String) -> bool:
 	performance = 50
 	on_probation = false
 	probation_months_left = 0
+	last_probation_ended = false
 	hunt_progress = 0
 	pending_offer = {}
 	last_month_flavour = ""
 	last_activity_id = ""
 	last_activity_title = ""
 	last_deltas = {}
+	last_performance_delta = 0
+	last_salary_delta = 0
+	last_salary_before = 0
 	_clear_event()
 	_clear_map_result()
 	_clear_career_result()
@@ -191,6 +205,9 @@ func accept_offer_and_run_first_month() -> bool:
 	last_activity_id = ""
 	last_activity_title = "入職第一個月"
 	last_deltas = {}
+	last_performance_delta = 0
+	last_salary_delta = 0
+	last_salary_before = 0
 	_clear_event()
 	_clear_map_result()
 	_clear_career_result()
@@ -202,6 +219,7 @@ func accept_offer_and_run_first_month() -> bool:
 	performance = 55
 	on_probation = true
 	probation_months_left = 3
+	last_probation_ended = false
 	hunt_progress = 0
 	pending_offer = {}
 	last_company_state = company_state
@@ -255,7 +273,17 @@ func climate_label() -> String:
 
 
 func climate_hub_line() -> String:
+	## Unchanged climate → short chip; changed → full canonical flavour.
+	if not last_climate_changed:
+		return LaborMarketData.climate_chip(market_climate)
 	return LaborMarketData.hub_flavour(market_climate)
+
+
+func company_hub_line() -> String:
+	## Unchanged company state → short chip; changed → canonical flavour.
+	if not last_company_changed:
+		return CompaniesData.state_chip(company_state)
+	return CompaniesData.state_flavour(company_state)
 
 
 func is_crisis_month() -> bool:
@@ -272,6 +300,8 @@ func apply_activity(id: String, roll_event: bool = true) -> bool:
 		return false
 	if job_id == "":
 		return false
+	var perf_before := performance
+	var sal_before := salary_num
 	_clear_career_result()
 	last_company_changed = false
 
@@ -303,6 +333,7 @@ func apply_activity(id: String, roll_event: bool = true) -> bool:
 		probation_months_left = maxi(probation_months_left - 1, 0)
 		if probation_months_left <= 0:
 			on_probation = false
+			last_probation_ended = true
 
 	_tick_labor_climate()
 	_tick_company_state()
@@ -315,6 +346,9 @@ func apply_activity(id: String, roll_event: bool = true) -> bool:
 		_roll_and_apply_event()
 	else:
 		_clear_event()
+	last_performance_delta = performance - perf_before
+	last_salary_before = sal_before
+	last_salary_delta = salary_num - sal_before
 	return true
 
 
@@ -452,12 +486,16 @@ func to_save_dict() -> Dictionary:
 		"performance": performance,
 		"on_probation": on_probation,
 		"probation_months_left": probation_months_left,
+		"last_probation_ended": last_probation_ended,
 		"hunt_progress": hunt_progress,
 		"pending_offer": pending_offer.duplicate(true),
 		"last_month_flavour": last_month_flavour,
 		"last_activity_id": last_activity_id,
 		"last_activity_title": last_activity_title,
 		"last_deltas": last_deltas.duplicate(true),
+		"last_performance_delta": last_performance_delta,
+		"last_salary_delta": last_salary_delta,
+		"last_salary_before": last_salary_before,
 		"last_event_id": last_event_id,
 		"last_event_title": last_event_title,
 		"last_event_flavour": last_event_flavour,
@@ -514,12 +552,16 @@ func apply_save_dict(d: Dictionary) -> void:
 	performance = int(d.get("performance", 50))
 	on_probation = bool(d.get("on_probation", false))
 	probation_months_left = int(d.get("probation_months_left", 0))
+	last_probation_ended = bool(d.get("last_probation_ended", false))
 	hunt_progress = int(d.get("hunt_progress", 0))
 	pending_offer = (d.get("pending_offer", {}) as Dictionary).duplicate(true)
 	last_month_flavour = str(d.get("last_month_flavour", ""))
 	last_activity_id = str(d.get("last_activity_id", ""))
 	last_activity_title = str(d.get("last_activity_title", ""))
 	last_deltas = (d.get("last_deltas", {}) as Dictionary).duplicate(true)
+	last_performance_delta = int(d.get("last_performance_delta", 0))
+	last_salary_delta = int(d.get("last_salary_delta", 0))
+	last_salary_before = int(d.get("last_salary_before", 0))
 	last_event_id = str(d.get("last_event_id", ""))
 	last_event_title = str(d.get("last_event_title", ""))
 	last_event_flavour = str(d.get("last_event_flavour", ""))
@@ -661,6 +703,7 @@ func _accept_pending_offer(act: Dictionary) -> bool:
 	performance = 50
 	on_probation = true
 	probation_months_left = 3
+	last_probation_ended = false
 	hunt_progress = 0
 	pending_offer = {}
 	var deltas: Dictionary = act.get("deltas", {"health": -2, "manage": 1})
@@ -768,7 +811,9 @@ func _tick_company_state() -> void:
 			CompaniesData.state_flavour(company_state)
 		]
 	else:
-		last_company_flavour = CompaniesData.state_flavour(company_state)
+		# Unchanged: keep short/rotated line for resolve collapse (UI may chip it)
+		var seed_key2 := year * 100 + month * 11 + months_played
+		last_company_flavour = CompaniesData.state_flavour(company_state, seed_key2)
 
 
 

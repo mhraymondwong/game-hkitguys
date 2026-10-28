@@ -90,15 +90,26 @@ func _build_ui() -> void:
 	var step_txt := "本月計劃 · %s" % GameState.season_label()
 	if GameState.is_crisis_month():
 		step_txt = "危機月 · %s" % GameState.season_label()
+	elif GameState.last_probation_ended:
+		step_txt = "正式員工 · %s" % GameState.season_label()
 	v.add_child(UiStyle.make_step_tag(step_txt))
 
 	var h := Label.new()
-	h.text = "危機抉擇——呢個月冇普通日常" if GameState.is_crisis_month() else "呢個月要點過？"
+	if GameState.is_crisis_month():
+		h.text = "危機抉擇——呢個月冇普通日常"
+	elif GameState.last_probation_ended:
+		h.text = "試用期過咗——正式員工。呢個月要點過？"
+	else:
+		h.text = "呢個月要點過？"
 	UiStyle.apply_label(h, 22)
 	v.add_child(h)
 
+	# Climate / company: full essay only when changed; else short chip (anti-spam)
 	var climate_lbl := Label.new()
-	climate_lbl.text = "市況「%s」：%s" % [GameState.climate_label(), GameState.climate_hub_line()]
+	if GameState.last_climate_changed:
+		climate_lbl.text = "市況「%s」：%s" % [GameState.climate_label(), GameState.climate_hub_line()]
+	else:
+		climate_lbl.text = "%s　｜　%s" % [GameState.climate_hub_line(), GameState.company_hub_line()]
 	climate_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UiStyle.apply_label(climate_lbl, 12, true)
 	climate_lbl.add_theme_color_override("font_color", GameConfig.COL_RIM_CYAN)
@@ -115,26 +126,27 @@ func _build_ui() -> void:
 	elif GameState.can_push_promo():
 		offer_note = "　·　可爭取升職／加薪"
 	if GameState.is_crisis_month():
-		lead.text = "公司「%s」。普通活動暫停——只可以揀危機應對。%s" % [
-			GameState.company_state_label(),
+		lead.text = "普通活動暫停——只可以揀危機應對。%s" % offer_note
+	elif GameState.last_company_changed:
+		lead.text = "每月專心一件大事。%s　亦可出街走地圖（每月一次）。%s" % [
+			GameState.company_hub_line(),
 			offer_note
 		]
 	else:
-		lead.text = "每月專心一件大事。公司而家「%s」。亦可出街走地圖（每月一次）。%s" % [
-			GameState.company_state_label(),
-			offer_note
-		]
+		lead.text = "每月專心一件大事。亦可出街走地圖（每月一次）。%s" % offer_note
 	lead.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	UiStyle.apply_label(lead, 13, true)
 	v.add_child(lead)
 
-	if GameState.hunt_progress > 0 or GameState.on_probation or GameState.forced_job_hunt:
+	if GameState.hunt_progress > 0 or GameState.on_probation or GameState.forced_job_hunt or GameState.last_probation_ended:
 		var meta := Label.new()
 		var bits: PackedStringArray = []
 		if GameState.hunt_progress > 0:
 			bits.append("求職進度 %d" % GameState.hunt_progress)
 		if GameState.on_probation:
 			bits.append("試用期剩 %d 月" % GameState.probation_months_left)
+		elif GameState.last_probation_ended:
+			bits.append("試用期過咗——正式員工")
 		if GameState.forced_job_hunt:
 			bits.append("強制搵工")
 		meta.text = "　｜　".join(bits)
@@ -142,11 +154,17 @@ func _build_ui() -> void:
 		meta.add_theme_color_override("font_color", GameConfig.COL_TAG_FG)
 		v.add_child(meta)
 
+	# Consume probation-end one-shot after hub chrome rendered
+	if GameState.last_probation_ended:
+		GameState.last_probation_ended = false
+
+	# Activity list: claim remaining glass height (hint/saves live in sticky bar → no clip)
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.custom_minimum_size = Vector2(0, 160)
+	scroll.custom_minimum_size = Vector2(0, 280)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 	v.add_child(scroll)
 
 	_list = VBoxContainer.new()
@@ -156,19 +174,16 @@ func _build_ui() -> void:
 
 	_hint = Label.new()
 	_hint.text = "揀一項活動，再確認。"
-	UiStyle.apply_label(_hint, 13, true)
-	v.add_child(_hint)
+	UiStyle.apply_label(_hint, 12, true)
 
 	_save_status = Label.new()
 	_save_status.text = ""
-	UiStyle.apply_label(_save_status, 12, true)
-	v.add_child(_save_status)
+	UiStyle.apply_label(_save_status, 11, true)
 
 	_save_row = HBoxContainer.new()
-	_save_row.add_theme_constant_override("separation", 8)
-	v.add_child(_save_row)
+	_save_row.add_theme_constant_override("separation", 6)
 
-	# BOTTOM sticky CTA bar
+	# BOTTOM sticky CTA bar: title / map / compact saves / hint / confirm
 	var bar := UiStyle.make_sticky_cta_bar()
 	right_col.add_child(bar)
 	var row: HBoxContainer = bar.get_node("Row")
@@ -192,13 +207,21 @@ func _build_ui() -> void:
 	)
 	row.add_child(map_btn)
 
+	row.add_child(_save_row)
+
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(spacer)
 
+	var hint_col := VBoxContainer.new()
+	hint_col.add_theme_constant_override("separation", 2)
+	hint_col.add_child(_hint)
+	hint_col.add_child(_save_status)
+	row.add_child(hint_col)
+
 	_confirm = Button.new()
 	_confirm.text = "確認本月活動"
-	_confirm.custom_minimum_size = Vector2(220, 54)
+	_confirm.custom_minimum_size = Vector2(200, 50)
 	UiStyle.apply_button(_confirm, true)
 	_confirm.disabled = true
 	_confirm.pressed.connect(_on_confirm)
@@ -211,9 +234,9 @@ func _refresh_save_row() -> void:
 	for i in range(1, SaveSystem.SLOT_COUNT + 1):
 		var btn := Button.new()
 		var exists := SaveSystem.slot_exists(i)
-		btn.text = "存到槽 %d%s" % [i, "（覆寫）" if exists else ""]
+		btn.text = "存%d%s" % [i, "·" if exists else ""]
 		UiStyle.apply_button(btn, false)
-		btn.custom_minimum_size = Vector2(0, 40)
+		btn.custom_minimum_size = Vector2(56, 40)
 		var slot_i := i
 		btn.pressed.connect(func() -> void:
 			if SaveSystem.save_slot(slot_i, GameState):
@@ -261,6 +284,8 @@ func _hub_activities() -> Array:
 			pinned.append(a)
 		else:
 			rest.append(a)
+	# Soft options（團隊飯／茶餐廳／休息）唔好只藏地圖——非危機月浮上列表前段
+	rest = ActivitiesData.ensure_social_rest_visible(rest, GameState.month, 6)
 	return pinned + rest
 
 
@@ -302,7 +327,8 @@ func _refresh_list() -> void:
 			btn.expand_icon = true
 			btn.add_theme_constant_override("icon_max_width", 52)
 		UiStyle.apply_choice_button(btn, id == _selected)
-		btn.custom_minimum_size = Vector2(0, 72)
+		btn.custom_minimum_size = Vector2(0, 68)
+		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var id_capture := id
 		var title_capture := str(a.get("title", ""))
 		btn.pressed.connect(func() -> void:

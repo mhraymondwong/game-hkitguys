@@ -17,17 +17,35 @@ const LABELS := {
 	"freezing": "寒冬／凍招"
 }
 
-## Hub chrome 短句（唔印遊戲名）
+## Hub chrome 短句（一口粵語；唔印遊戲名）
 const HUB_FLAVOUR := {
-	"booming": "市面招人味濃——Offer 質素同求職進度都易啲上車。",
-	"balanced": "市況唔旺唔淡；穩步為上，跳槽都要睇公司狀態。",
-	"freezing": "凍招傳聞多——外部 Offer 縮水，公司收縮風險升。"
+	"booming": "而家好易搵工，Offer 都靚啲。",
+	"balanced": "市況一般，穩陣啲好過搏。",
+	"freezing": "凍招期——Offer 少，公司易縮人。"
+}
+
+const HUB_FLAVOUR_ALT := {
+	"booming": [
+		"招人旺：好工仲搶手。",
+		"獵頭多，進度易推。",
+		"景氣旺——跳槽窗口開住。"
+	],
+	"balanced": [
+		"平穩市：唔使慌，亦唔好飄。",
+		"一般市況，睇定公司先跳。",
+		"唔旺唔淡，穩步為上。"
+	],
+	"freezing": [
+		"凍招：Offer 緊，求職要準。",
+		"寒冬——公司易縮人。",
+		"市況凍：留低都要睇後路。"
+	]
 }
 
 const RESOLVE_FLAVOUR := {
-	"booming": "勞動市場：景氣旺。獵頭電話多，好崗位亦搶手。",
-	"balanced": "勞動市場：平穩。有機會，但唔係人人有第二個 Offer。",
-	"freezing": "勞動市場：寒冬。面試輪空多，凍薪凍招新聞滿天飛。"
+	"booming": "勞動市場旺：好工搶手，獵頭多。",
+	"balanced": "勞動市場平穩：有機會，但唔人人有 Offer。",
+	"freezing": "勞動市場凍：面試難，凍薪凍招多。"
 }
 
 ## hunt_progress gain multiplier (basis points → float)
@@ -67,8 +85,16 @@ static func label(climate: String) -> String:
 	return str(LABELS.get(climate, climate))
 
 
-static func hub_flavour(climate: String) -> String:
+static func hub_flavour(climate: String, seed_key: int = 0) -> String:
+	if seed_key != 0 and HUB_FLAVOUR_ALT.has(climate):
+		var alts: Array = HUB_FLAVOUR_ALT[climate]
+		if alts.size() > 0:
+			return str(alts[posmod(seed_key, alts.size())])
 	return str(HUB_FLAVOUR.get(climate, ""))
+
+
+static func climate_chip(climate: String) -> String:
+	return "市況・%s" % label(climate)
 
 
 static func resolve_flavour(climate: String) -> String:

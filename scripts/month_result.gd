@@ -51,13 +51,20 @@ func _build_ui() -> void:
 	v.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	right.add_child(v)
 
-	v.add_child(UiStyle.make_step_tag("入職滿月"))
+	v.add_child(UiStyle.make_step_tag("入職滿月 · 公司已排 onboarding"))
 
 	var h := Label.new()
-	h.text = "第一個月 · %s" % GameState.job_title
+	h.text = "入職第一個月：公司已替你排咗 onboarding／sprint"
 	h.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	UiStyle.apply_label(h, 24)
+	UiStyle.apply_label(h, 20)
 	v.add_child(h)
+
+	var sub := Label.new()
+	sub.text = "%s　·　呢個月唔使你揀——入職流程自動過完，下個月先開始自己排。" % GameState.job_title
+	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiStyle.apply_label(sub, 13, true)
+	sub.add_theme_color_override("font_color", GameConfig.COL_TAG_FG)
+	v.add_child(sub)
 
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL

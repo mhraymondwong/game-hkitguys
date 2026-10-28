@@ -10,10 +10,11 @@ extends RefCounted
 ##                OR last id in {upward-chat, team-lunch, feature-sprint}
 ##   3. else portrait_badge.jpg
 ## Fullbody (all cutout PNG — 先退底，再叠在背景／其他圖上；禁止 JPG 棚底):
-##   1. hoodie — last id deep-rest OR bias rest OR id team-lunch
+##   1. hoodie — last id deep-rest OR bias rest OR id team-lunch／茶餐廳／hackathon
 ##   2. formal — last id upward-chat OR title/context hints interview/boss
 ##   3. else fullbody.png
-## Cinematic hub/month stage: cinematic_stage_path → stand_suit PNG only.
+## Cinematic hub/month stage (cutout PNG only — never JPG):
+##   hoodie → fullbody_hoodie.png；formal → fullbody_formal.png；else stand_suit.png
 ## Priority: check tired before confident; hoodie before formal.
 
 
@@ -71,13 +72,23 @@ static func month_result_fullbody_path(gs: Node = null) -> String:
 	return fullbody_path(gs)
 
 
-## Hub / month cinematic shell: always cutout stand_suit PNG (退底後叠 SceneBg／stage).
-static func cinematic_stage_path(_gs: Node = null) -> String:
+## Hub / month cinematic shell: cutout PNG by last activity (退底後叠 SceneBg／stage).
+## Never returns JPG. Default = stand_suit; rest/social → hoodie; upward/interview → formal.
+static func cinematic_stage_path(gs: Node = null) -> String:
+	var act_id := _act_id(gs)
+	var bias := _act_bias(gs)
+	var title := _act_title(gs)
+	if act_id == "deep-rest" or bias == "rest" or act_id in ["team-lunch", "side-project", "cha-chaan-teng-round", "hackathon-blitz", "meetup-night"]:
+		return FULLBODY_HOODIE
+	if act_id in ["upward-chat", "bonus-talk", "mentor-junior", "perf-review-week", "push-promo", "interview-round", "accept-hop", "decline-hop"] or _title_hints_formal(title):
+		return FULLBODY_FORMAL
 	return FULLBODY_STAND_SUIT
 
 
 static func month_result_portrait_path(gs: Node = null) -> String:
 	var health := _health(gs)
+	if health <= 35:
+		return PORTRAIT_TIRED
 	if health >= 70:
 		return PORTRAIT_CONFIDENT
 	return PORTRAIT_DEFAULT

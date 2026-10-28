@@ -1,4 +1,4 @@
-# 《香港IT人》— 玩法規格（v2.0.15）
+# 《香港IT人》— 玩法規格（v2.0.18）
 
 > 專案 id／資料夾：**hkitguy**  
 > 對外名稱：**《香港IT人》**  
@@ -31,7 +31,7 @@
 - **Hub 活動圖示（Raymond，2026-10-24）**：Grok Imagine bias 8 圖 `assets/ui/icons/icon_bias_*.png`；`UiIcons.bias_icon_path`；危機活動用 `icon_bias_crisis`
 - **月結 layout B LOCKED（Raymond，2026-10-25）**：左環立繪＋右可捲敘事＋底欄常在（`month_resolve`／`month_result`）；移除底部「目前狀態」chips；overflow 修復
 - **Cinematic 腳貼地（2026-10-25）**：左 stage 滿高至底邊（CTA 只掛右欄）；立繪底錨＋紋理比例無 letterbox
-- **Cinematic full-art LOCKED（Raymond，2026-10-25，full-art）**：本月計劃／月結／入職滿月共用殼——全幅夕陽辦公室底、左全高站立立繪＋浮動屬性球（無玻璃卡框）、右大玻璃板、底 sticky CTA；資產 `fullbody_stand_suit.png`＋`stage_office_sunset.jpg`；`UiStyle.make_cinematic_stat_stage`／`make_sticky_cta_bar`；`ProtagonistArt.cinematic_stage_path`；`SceneBg` junior／fallback → sunset（mood 覆寫仍在）
+- **Cinematic full-art LOCKED（Raymond，2026-10-25，full-art）**：本月計劃／月結／入職滿月共用殼——全幅夕陽辦公室底、左全高站立立繪＋浮動屬性球（無玻璃卡框）、右大玻璃板、底 sticky CTA；資產 cutout PNG（`fullbody_stand_suit`／`hoodie`／`formal`）＋`stage_office_sunset.jpg`；`UiStyle.make_cinematic_stat_stage`／`make_sticky_cta_bar`；`ProtagonistArt.cinematic_stage_path` 可切換服裝；`SceneBg` junior／fallback → sunset（mood 覆寫仍在）
 > - **HUD／header 規則**：chrome **唔好印遊戲名「香港IT人」**（怪）；標題畫面主標題可保留；hub／學歷／職位／Offer／月結 header 只顯示年月／職位／薪／狀態
 > - **開局打磨 A DONE（Raymond，2026-10-22）**：title→education→job→offer→month_result；glass 步驟 pill；粵語微文案；CTA「繼續 · …」；smoke 加 opening polish 斷言；截圖 01–04／03b
 > - **Phase 3a 系統 DONE（Raymond，2026-10-22）**：季節權重＋活動／事件表＋`fast_forward_months`；美術 Imagine 留 3b
@@ -305,7 +305,7 @@ Helpdesk／機房／開發樓層／Boardroom／茶餐廳／電腦中心／港鐵
 | `fullbody_hoodie.jpg` | 休閒 hoodie 全身（休息／週末） |
 | `fullbody_formal.jpg` | 正裝全身（向上管理／面試感） |
 
-**切換一覽**（`scripts/protagonist_art.gd`）：portrait＝健康≤35 或 grind 活動且健康≤50 → tired；健康≥70 或 upward-chat／team-lunch／feature-sprint → confident；否則 default。fullbody＝deep-rest／rest／team-lunch → hoodie；upward-chat／面試提示 → formal；否則 default。**cinematic_stage_path**（hub／月結殼）＝一律 `fullbody_stand_suit.png`（退底 PNG）。fullbody 變體亦為退底 PNG（`fullbody.png`／`hoodie`／`formal`）；**禁止**未退底 JPG 叠在背景上。portrait 環立繪 helper 仍保留；title／offer 維持 default／工卡。
+**切換一覽**（`scripts/protagonist_art.gd`）：portrait＝健康≤35 或 grind 活動且健康≤50 → tired；健康≥70 或 upward-chat／team-lunch／feature-sprint → confident；否則 default。fullbody＝deep-rest／rest／team-lunch → hoodie；upward-chat／面試提示 → formal；否則 default。**cinematic_stage_path**（hub／月結殼）可喺退底 PNG 之間切換：休息／社交 → `fullbody_hoodie.png`；向上管理／面試／perf → `fullbody_formal.png`；否則 `fullbody_stand_suit.png`。**禁止**未退底 JPG 叠在背景上。portrait 環立繪 helper 仍保留；title／offer 維持 default／工卡。
 
 
 ### Phase C — Web／HTML5 匯出 ✅ DONE（2026-10-22）
@@ -324,7 +324,7 @@ Helpdesk／機房／開發樓層／Boardroom／茶餐廳／電腦中心／港鐵
 | 元素 | 實作 |
 |------|------|
 | 面板 | frosted glass（半透明藍灰）＋ cyan／gold 柔光邊（`UiStyle.glass_style`） |
-| Hub | **cinematic full-art**：無密集 header chips；左＝`make_cinematic_stat_stage`（站立西裝＋大 orb）；右＝大玻璃（slim 狀態行＋活動格＋bias 圖示）；底＝`make_sticky_cta_bar`（確認本月活動） |
+| Hub | **cinematic full-art**：無密集 header chips；左＝`make_cinematic_stat_stage`（cutout 全身＋大 orb；服裝隨上次活動）；右＝大玻璃（slim 狀態行＋活動格＋bias 圖示）；底＝`make_sticky_cta_bar`（確認本月活動） |
 | 開局／月結 | 開局仍 `make_card_panel`；**月結／滿月／Hub**＝cinematic shell（左站立立繪＋右 Scroll＋sticky CTA）；禁 HUD 遊戲名 |
 | 標題 | 主標題可顯示《香港IT人》；glass menu card＋橙「開始入行」 |
 | 工卡 | badge header＝「員工證」（唔再印 HONG KONG IT／遊戲名） |
@@ -459,6 +459,9 @@ smoke PASS；重截 `shots/01`–`04`／`03b`。
 
 | 版 | 日期 | 摘要 |
 |----|------|------|
+| v2.0.18 | 2026-10-29 | 玩測低優先：月結故事卡放大；cinematic 可喺 cutout PNG（suit／hoodie／formal）切換；hub 非危機月浮上團隊飯／茶餐廳／休息；夏秋季節 boost 加人脈；smoke＋shots/playtest_fix_low；未推 Pages |
+| v2.0.17 | 2026-10-29 | 玩測中優先：試用期完結一拍（resolve banner＋hub step）；入職月標明公司已排 onboarding；orb「0–100｜影響升職同 Offer」；市況改一口粵語短句；smoke＋shots/playtest_fix_med；未推 Pages |
+| v2.0.16 | 2026-10-29 | 玩測高優先：活動列表可捲第四卡；地圖結果不叠卡＋「已用」；公司／市況無變改短 chip；影響斷行／缺字／綠邊；月結績效Δ＋人工；smoke＋shots/playtest_fix |
 | v2.0.15 | 2026-10-28 | 主角全身立繪一律先退底（PNG）再叠背景；hoodie／formal／default 去背；cinematic 仍鎖 stand_suit |
 | v2.0.11 | 2026-10-25 | cinematic 主角底錨定＋App 固定頂部，強制頭／球空隙 |
 | v2.0.10 | 2026-10-25 | cinematic 對齊附圖：主角大腿以上比例、極座標球環、glossy 球色＋ring hint |

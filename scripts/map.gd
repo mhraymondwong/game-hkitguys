@@ -1,11 +1,14 @@
 extends Control
-## 城市／公司地圖殼 — 每計劃月可走一處；玻璃地點格
+## 城市／公司地圖殼 — 每計劃月可走一處；玻璃地點格；結果後隱藏格＋同步「已用」
 
 
 var _body: VBoxContainer
 var _hint: Label
+var _title: Label
+var _lead: Label
 var _locs_wrap: GridContainer
 var _result_panel: PanelContainer
+var _header_line2: Label
 
 
 func _ready() -> void:
@@ -15,6 +18,10 @@ func _ready() -> void:
 	UiStyle.add_texture_background(self, "res://assets/month_bg.jpg")
 	_build_ui()
 	_refresh()
+
+
+func _map_action_label() -> String:
+	return "已用" if GameState.map_used_this_month else "尚可 1 次"
 
 
 func _build_ui() -> void:
@@ -37,9 +44,13 @@ func _build_ui() -> void:
 		GameState.company_name,
 		GameState.company_state_label(),
 		GameState.job_title,
-		"已用" if GameState.map_used_this_month else "尚可 1 次"
+		_map_action_label()
 	]
-	root_v.add_child(UiStyle.make_chrome_header(line1, line2))
+	var chrome := UiStyle.make_chrome_header(line1, line2)
+	root_v.add_child(chrome)
+	# make_chrome_header → Panel > VBox > t1, t2
+	var chrome_v: VBoxContainer = chrome.get_child(0)
+	_header_line2 = chrome_v.get_child(1) as Label
 
 	var card := UiStyle.make_card_panel()
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -54,16 +65,16 @@ func _build_ui() -> void:
 
 	_body.add_child(UiStyle.make_step_tag("城市／公司"))
 
-	var h := Label.new()
-	h.text = "去邊度兜一轉？"
-	UiStyle.apply_label(h, 24)
-	_body.add_child(h)
+	_title = Label.new()
+	_title.text = "去邊度兜一轉？"
+	UiStyle.apply_label(_title, 24)
+	_body.add_child(_title)
 
-	var lead := Label.new()
-	lead.text = "唔取代本月活動——每月可額外走一處，觸發一段短事件再返計劃。"
-	lead.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	UiStyle.apply_label(lead, 14, true)
-	_body.add_child(lead)
+	_lead = Label.new()
+	_lead.text = "唔取代本月活動——每月可額外走一處，觸發一段短事件再返計劃。"
+	_lead.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	UiStyle.apply_label(_lead, 14, true)
+	_body.add_child(_lead)
 
 	_hint = Label.new()
 	UiStyle.apply_label(_hint, 13, true)
@@ -95,36 +106,57 @@ func _build_ui() -> void:
 	row.add_child(back)
 
 
+func _sync_header() -> void:
+	if _header_line2 == null:
+		return
+	_header_line2.text = "%s　｜　%s　｜　%s　｜　本月地圖行動：%s" % [
+		GameState.company_name,
+		GameState.company_state_label(),
+		GameState.job_title,
+		_map_action_label()
+	]
+
+
 func _refresh() -> void:
 	for c in _locs_wrap.get_children():
 		c.queue_free()
 	for c in _result_panel.get_children():
 		c.queue_free()
 
+	_sync_header()
+
 	var used := GameState.map_used_this_month
 	if used and GameState.last_map_event_id != "":
+		_title.text = "本月足跡"
+		_lead.text = "呢個月已經出過街——下個月計劃先再開放地圖。"
 		_hint.text = "本月已走完一處。下個月先再出街。"
+		_locs_wrap.visible = false
 		_show_result()
 	elif used:
+		_title.text = "本月足跡"
+		_lead.text = "呢個月地圖行動已用完。"
 		_hint.text = "本月地圖行動已用完。"
+		_locs_wrap.visible = false
 		_result_panel.visible = false
 	else:
+		_title.text = "去邊度兜一轉？"
+		_lead.text = "唔取代本月活動——每月可額外走一處，觸發一段短事件再返計劃。"
 		_hint.text = "揀一個地點。"
+		_locs_wrap.visible = true
 		_result_panel.visible = false
-
-	for loc in MapData.all_locations():
-		var id := str(loc.get("id", ""))
-		var btn := Button.new()
-		btn.text = "%s　%s\n%s" % [str(loc.get("icon", "")), str(loc.get("title", "")), str(loc.get("desc", ""))]
-		btn.custom_minimum_size = Vector2(0, 96)
-		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		UiStyle.apply_choice_button(btn, false)
-		btn.disabled = used
-		var id_cap := id
-		btn.pressed.connect(func() -> void:
-			_on_pick(id_cap)
-		)
-		_locs_wrap.add_child(btn)
+		for loc in MapData.all_locations():
+			var id := str(loc.get("id", ""))
+			var btn := Button.new()
+			btn.text = "%s　%s\n%s" % [str(loc.get("icon", "")), str(loc.get("title", "")), str(loc.get("desc", ""))]
+			btn.custom_minimum_size = Vector2(0, 96)
+			btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			UiStyle.apply_choice_button(btn, false)
+			btn.disabled = false
+			var id_cap := id
+			btn.pressed.connect(func() -> void:
+				_on_pick(id_cap)
+			)
+			_locs_wrap.add_child(btn)
 
 
 func _on_pick(location_id: String) -> void:

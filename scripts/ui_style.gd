@@ -618,10 +618,29 @@ static func make_cinematic_stat_stage(
 				clampf(oy, 2.0, h - orb_px - 2.0)
 			)
 
-	root.resized.connect(layout)
-	root.ready.connect(layout)
-	root.set_meta("_cine_layout", layout)
-	layout.call_deferred()
+	# Short orb scale / meaning caption (E glass; no game title)
+	var orb_cap := Label.new()
+	orb_cap.name = "OrbMeaningHint"
+	orb_cap.text = "屬性 0–100｜影響升職同 Offer"
+	orb_cap.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	orb_cap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	apply_label(orb_cap, 10, true)
+	orb_cap.add_theme_color_override("font_color", Color(0.75, 0.88, 1.0, 0.85))
+	root.add_child(orb_cap)
+
+	var layout_with_cap := func() -> void:
+		layout.call()
+		var w2 := root.size.x if root.size.x >= 8.0 else size.x
+		var h2 := root.size.y if root.size.y >= 8.0 else size.y
+		orb_cap.reset_size()
+		var cw := minf(orb_cap.get_minimum_size().x + 8.0, w2 - 8.0)
+		orb_cap.size = Vector2(cw, orb_cap.get_minimum_size().y)
+		orb_cap.position = Vector2((w2 - cw) * 0.5, h2 - orb_cap.size.y - 4.0)
+
+	root.resized.connect(layout_with_cap)
+	root.ready.connect(layout_with_cap)
+	root.set_meta("_cine_layout", layout_with_cap)
+	layout_with_cap.call_deferred()
 
 	return root
 
@@ -646,12 +665,22 @@ static func make_sticky_cta_bar() -> PanelContainer:
 
 
 ## Inner flavour / quote glass box.
-static func make_flavour_panel() -> PanelContainer:
+## story=true → roomier padding + min height so month-resolve narrative fills the glass.
+static func make_flavour_panel(story: bool = false) -> PanelContainer:
 	var p := PanelContainer.new()
-	var sb := glass_style(GameConfig.COL_GLASS_SOFT, GameConfig.COL_TILE_BORDER, 14, false)
-	sb.content_margin_left = 14
-	sb.content_margin_right = 14
-	sb.content_margin_top = 12
-	sb.content_margin_bottom = 12
+	var radius := 16 if story else 14
+	var sb := glass_style(GameConfig.COL_GLASS_SOFT, GameConfig.COL_TILE_BORDER, radius, false)
+	if story:
+		sb.content_margin_left = 20
+		sb.content_margin_right = 20
+		sb.content_margin_top = 18
+		sb.content_margin_bottom = 18
+		p.custom_minimum_size = Vector2(0, 120)
+	else:
+		sb.content_margin_left = 14
+		sb.content_margin_right = 14
+		sb.content_margin_top = 12
+		sb.content_margin_bottom = 12
 	p.add_theme_stylebox_override("panel", sb)
+	p.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	return p

@@ -88,6 +88,30 @@ const STATE_FLAVOUR := {
 	"shrinking": "公司大幅收縮：預算凍、傳聞裁員——宜睇路。"
 }
 
+## Alternate one-liners when state unchanged across months (rotate; still accurate).
+const STATE_FLAVOUR_ALT := {
+	"expanding": [
+		"擴充期：新坑多，stand-up 人數都多咗。",
+		"公司擴充中——Headcount 開住，節奏加快。",
+		"招人味仲喺：專案加碼，你份工亦忙啲。"
+	],
+	"stable": [
+		"公司狀態無變：仍然穩陣，日常運維為主。",
+		"穩陣月：無大新聞，ticket 照常清。",
+		"公司仍「穩定」——唔好彩亦唔好驚。"
+	],
+	"acquired": [
+		"收購整合持續：流程改名多過改實。",
+		"整合期未完：會議多，決策慢。",
+		"被收購之後：文化同工具都仲喺磨合。"
+	],
+	"shrinking": [
+		"收縮未緩：預算仍凍，傳聞未散。",
+		"公司仍大幅收縮——宜睇後路。",
+		"收縮期：能見度低，每步都要慎。"
+	]
+}
+
 
 static func all_ids() -> Array:
 	return COMPANIES.keys()
@@ -108,8 +132,17 @@ static func state_label(state: String) -> String:
 	return str(STATE_LABELS.get(state, state))
 
 
-static func state_flavour(state: String) -> String:
+static func state_flavour(state: String, seed_key: int = 0) -> String:
+	## seed_key!=0 → rotate ALT lines (for unchanged hub/resolve); 0 → canonical line.
+	if seed_key != 0 and STATE_FLAVOUR_ALT.has(state):
+		var alts: Array = STATE_FLAVOUR_ALT[state]
+		if alts.size() > 0:
+			return str(alts[posmod(seed_key, alts.size())])
 	return str(STATE_FLAVOUR.get(state, ""))
+
+
+static func state_chip(state: String) -> String:
+	return "公司・%s" % state_label(state)
 
 
 static func resolve_company_id_from_job(job: Dictionary) -> String:

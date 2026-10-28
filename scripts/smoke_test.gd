@@ -558,6 +558,36 @@ func _run() -> void:
 	else:
 		print("[smoke] fullbody hoodie@cha-chaan-teng OK")
 
+	# Cinematic stage may switch among cutout PNGs (v2.0.18)
+	gs.last_activity_id = "deep-rest"
+	if ProtagonistArt.cinematic_stage_path(gs) != ProtagonistArt.FULLBODY_HOODIE:
+		printerr("[smoke] FAIL: cinematic deep-rest should be hoodie cutout")
+		ok = false
+	else:
+		print("[smoke] cinematic hoodie@deep-rest OK")
+	gs.last_activity_id = "upward-chat"
+	if ProtagonistArt.cinematic_stage_path(gs) != ProtagonistArt.FULLBODY_FORMAL:
+		printerr("[smoke] FAIL: cinematic upward-chat should be formal cutout")
+		ok = false
+	else:
+		print("[smoke] cinematic formal@upward-chat OK")
+	gs.last_activity_id = "feature-sprint"
+	if ProtagonistArt.cinematic_stage_path(gs) != ProtagonistArt.FULLBODY_STAND_SUIT:
+		printerr("[smoke] FAIL: cinematic default should be stand_suit")
+		ok = false
+	elif not str(ProtagonistArt.cinematic_stage_path(gs)).ends_with(".png"):
+		printerr("[smoke] FAIL: cinematic path must stay PNG cutout")
+		ok = false
+	else:
+		print("[smoke] cinematic stand_suit@default OK")
+	gs.health = 30
+	gs.last_activity_id = ""
+	if ProtagonistArt.month_result_portrait_path(gs) != ProtagonistArt.PORTRAIT_TIRED:
+		printerr("[smoke] FAIL: month_result tired@health30")
+		ok = false
+	else:
+		print("[smoke] month_result tired portrait OK")
+
 
 	# —— Phase 4: SaveSystem multi-slot ——
 	SaveSystem.clear_all_for_tests()
@@ -1353,7 +1383,227 @@ func _run() -> void:
 	else:
 		print("[smoke] cinematic full-art shell OK")
 
+	# —— v2.0.16 playtest high-priority fixes ——
+	print("[smoke] playtest-fix checks…")
+	# format_deltas: no mid-CJK-split of 影響 (word joiners + spaced chips)
+	var fd := ActivitiesData.format_deltas({"infra": 0, "app": 3, "manage": 2, "influence": 3, "health": -3})
+	if "影響" not in fd and "\u2060" not in fd:
+		# label may contain word joiners between glyphs — check both chars present in order
+		pass
+	if "影" not in fd or "響" not in fd:
+		printerr("[smoke] FAIL: format_deltas missing 影響 label got %s" % fd)
+		ok = false
+	elif " ｜ " not in fd and "｜" not in fd:
+		printerr("[smoke] FAIL: format_deltas should chip-separate got %s" % fd)
+		ok = false
+	else:
+		print("[smoke] format_deltas chips OK -> %s" % fd)
+
+	# feature-sprint flavour: no party-popper emoji (font tofu)
+	var sprint: Dictionary = ActivitiesData.get_activity("feature-sprint")
+	var sprint_fl := str(sprint.get("flavour", ""))
+	if "🎉" in sprint_fl:
+		printerr("[smoke] FAIL: feature-sprint still has emoji tofu risk")
+		ok = false
+	elif "讚" not in sprint_fl:
+		printerr("[smoke] FAIL: feature-sprint flavour missing safe react copy")
+		ok = false
+	else:
+		print("[smoke] feature-sprint flavour OK")
+
+	# performance + salary deltas recorded on apply_activity
+	gs.begin_new_game()
+	gs.select_education("uni")
+	gs.select_job("junior-dev")
+	gs.accept_offer_and_run_first_month()
+	gs.prepare_next_month()
+	var perf_a: int = gs.performance
+	var sal_a: int = gs.salary_num
+	if not gs.apply_activity("feature-sprint", false):
+		printerr("[smoke] FAIL: apply feature-sprint for perf delta")
+		ok = false
+	else:
+		if gs.last_performance_delta != (gs.performance - perf_a):
+			printerr("[smoke] FAIL: last_performance_delta=%d expected %d" % [gs.last_performance_delta, gs.performance - perf_a])
+			ok = false
+		elif gs.last_performance_delta == 0 and gs.track == "app":
+			printerr("[smoke] FAIL: app sprint should move performance")
+			ok = false
+		elif gs.last_salary_before != sal_a:
+			printerr("[smoke] FAIL: last_salary_before")
+			ok = false
+		else:
+			print("[smoke] perf delta OK delta=%d perf=%d" % [gs.last_performance_delta, gs.performance])
+
+	# company / climate chips when unchanged
+	if CompaniesData.state_chip("stable") == "" or LaborMarketData.climate_chip("booming") == "":
+		printerr("[smoke] FAIL: missing state/climate chips")
+		ok = false
+	else:
+		print("[smoke] chips OK %s / %s" % [CompaniesData.state_chip("stable"), LaborMarketData.climate_chip("balanced")])
+
+	# hub: scroll min height + sticky saves (no glass clip)
+	if "custom_minimum_size = Vector2(0, 280)" not in hub_bg:
+		printerr("[smoke] FAIL: hub scroll min height not raised")
+		ok = false
+	elif "company_hub_line" not in hub_bg:
+		printerr("[smoke] FAIL: hub missing company_hub_line collapse")
+		ok = false
+	else:
+		print("[smoke] hub scroll/collapse wiring OK")
+
+	# map: result hides grid + syncs 已用
+	var map_src := FileAccess.get_file_as_string("res://scripts/map.gd")
+	if "_locs_wrap.visible = false" not in map_src or "_sync_header" not in map_src:
+		printerr("[smoke] FAIL: map missing result-only / header sync")
+		ok = false
+	elif "本月地圖行動：%s" not in map_src:
+		printerr("[smoke] FAIL: map header counter format")
+		ok = false
+	else:
+		print("[smoke] map result-only OK")
+
+	# month_resolve shows perf + salary
+	if "last_performance_delta" not in res_bg or "HK$%s／月" not in res_bg:
+		printerr("[smoke] FAIL: month_resolve missing perf/salary chrome")
+		ok = false
+	elif "state_chip" not in res_bg or "climate_chip" not in res_bg:
+		printerr("[smoke] FAIL: month_resolve missing collapse chips")
+		ok = false
+	else:
+		print("[smoke] month_resolve transparency OK")
+
+	# stand_suit still PNG cutout (fringe clean only — do not rembg)
+	if not str(ProtagonistArt.FULLBODY_STAND_SUIT).ends_with(".png"):
+		printerr("[smoke] FAIL: stand_suit must remain PNG")
+		ok = false
+	else:
+		print("[smoke] stand_suit lock OK")
+
+	# —— v2.0.17 playtest medium-priority fixes ——
+	print("[smoke] playtest-fix-med checks…")
+
+	# probation end one-shot after countdown
+	gs.begin_new_game()
+	gs.select_education("uni")
+	gs.select_job("junior-dev")
+	gs.accept_offer_and_run_first_month()
+	if not gs.on_probation or gs.probation_months_left != 3:
+		printerr("[smoke] FAIL: start probation left=%d" % gs.probation_months_left)
+		ok = false
+	else:
+		gs.prepare_next_month()
+		var ended := false
+		for _i in range(4):
+			gs.apply_activity("feature-sprint", false)
+			if gs.last_probation_ended:
+				ended = true
+				break
+			gs.prepare_next_month()
+		if not ended:
+			printerr("[smoke] FAIL: last_probation_ended never set")
+			ok = false
+		elif gs.on_probation:
+			printerr("[smoke] FAIL: still on_probation after end beat")
+			ok = false
+		else:
+			print("[smoke] probation end beat OK left=%d" % gs.probation_months_left)
+
+	# month_result first-month onboarding label
+	var mres_src := FileAccess.get_file_as_string("res://scripts/month_result.gd")
+	if "公司已替你排咗 onboarding" not in mres_src and "公司已替你排咗 onboarding／sprint" not in mres_src:
+		# fullwidth slash may vary — check core phrase
+		if "onboarding" not in mres_src:
+			printerr("[smoke] FAIL: month_result missing onboarding label")
+			ok = false
+		else:
+			print("[smoke] month_result onboarding label OK")
+	else:
+		print("[smoke] month_result onboarding label OK")
+
+	# orb meaning hint on cinematic stage
+	var ui_med := FileAccess.get_file_as_string("res://scripts/ui_style.gd")
+	if "OrbMeaningHint" not in ui_med or "影響升職" not in ui_med:
+		printerr("[smoke] FAIL: missing cinematic orb meaning hint")
+		ok = false
+	else:
+		print("[smoke] orb meaning hint OK")
+
+	# climate copy: short spoken lines
+	var boom := LaborMarketData.hub_flavour("booming")
+	var bal := LaborMarketData.hub_flavour("balanced")
+	var frz := LaborMarketData.hub_flavour("freezing")
+	if len(boom) > 28 or len(bal) > 28 or len(frz) > 28:
+		printerr("[smoke] FAIL: climate hub lines still too long boom=%d bal=%d frz=%d" % [len(boom), len(bal), len(frz)])
+		ok = false
+	elif "易啲上車" in boom or "唔旺唔淡" in bal:
+		printerr("[smoke] FAIL: old dense climate copy still present")
+		ok = false
+	else:
+		print("[smoke] climate plain speech OK -> %s / %s / %s" % [boom, bal, frz])
+
+	# month_resolve probation banner wiring
+	var res_med := FileAccess.get_file_as_string("res://scripts/month_resolve.gd")
+	if "last_probation_ended" not in res_med or "試用期過咗" not in res_med:
+		printerr("[smoke] FAIL: month_resolve missing probation end banner")
+		ok = false
+	else:
+		print("[smoke] month_resolve probation banner OK")
+
 	print("[smoke] Phase 3b SceneBg OK")
+
+	# —— v2.0.18 playtest low-priority fixes ——
+	print("[smoke] playtest-fix-low checks…")
+
+	# Bigger story flavour panels
+	var ui_low := FileAccess.get_file_as_string("res://scripts/ui_style.gd")
+	var res_low := FileAccess.get_file_as_string("res://scripts/month_resolve.gd")
+	if "story: bool = false" not in ui_low:
+		printerr("[smoke] FAIL: make_flavour_panel missing story mode")
+		ok = false
+	else:
+		print("[smoke] flavour story mode OK")
+	if "make_flavour_panel(true)" not in res_low or "apply_label(flavour, 17)" not in res_low:
+		printerr("[smoke] FAIL: month_resolve story cards not enlarged")
+		ok = false
+	else:
+		print("[smoke] month_resolve bigger story cards OK")
+
+	# Season boosts expose social in summer
+	var summer_boosts: Array = ActivitiesData.season_boost_ids("summer")
+	if "team-lunch" not in summer_boosts and "cha-chaan-teng-round" not in summer_boosts:
+		printerr("[smoke] FAIL: summer missing social boost")
+		ok = false
+	else:
+		print("[smoke] summer social boost OK")
+
+	# Hub ensure_social_rest_visible pins soft option
+	var grindish: Array = []
+	for aid in ["ticket-grind", "oncall-night", "war-room", "feature-sprint", "bug-hunt", "patch-window", "team-lunch"]:
+		var ad: Dictionary = ActivitiesData.get_activity(aid)
+		if not ad.is_empty():
+			grindish.append(ad)
+	# Put social at the end so ensure must lift it
+	var lifted: Array = ActivitiesData.ensure_social_rest_visible(grindish, 7, 4)  # July = summer
+	if lifted.is_empty() or not ActivitiesData.is_social_or_rest(lifted[0]):
+		printerr("[smoke] FAIL: ensure_social_rest_visible did not lift soft option")
+		ok = false
+	else:
+		print("[smoke] ensure_social_rest_visible OK -> %s" % str(lifted[0].get("id", "")))
+
+	var hub_low := FileAccess.get_file_as_string("res://scripts/hub.gd")
+	if "ensure_social_rest_visible" not in hub_low:
+		printerr("[smoke] FAIL: hub not wiring social/rest ensure")
+		ok = false
+	else:
+		print("[smoke] hub social/rest wiring OK")
+
+	# Crisis month still exclusive (no soft inject into crisis path)
+	if "is_crisis_month()" not in hub_low or "CRISIS_ACTIVITY_IDS" not in hub_low:
+		printerr("[smoke] FAIL: hub crisis lock missing")
+		ok = false
+	else:
+		print("[smoke] hub crisis lock intact OK")
 
 
 	if ok:

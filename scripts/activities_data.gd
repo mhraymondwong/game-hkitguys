@@ -35,7 +35,7 @@ const ACTIVITIES := [
 		"desc": "跟 sprint 寫功能、開 PR、對齊設計。",
 		"bias": "app",
 		"deltas": {"infra": 0, "app": 5, "manage": 1, "influence": 1, "health": -5},
-		"flavour": "Stand-up 每日都講 progress。你嘅 PR 終於 merge，staging 見到自己寫嘅 button。Slack 有人 react 🎉——細細嘅成就感。"
+		"flavour": "Stand-up 每日都講 progress。你嘅 PR 終於 merge，staging 見到自己寫嘅 button。Slack 有人 react 咗個讚——細細嘅成就感。"
 	},
 	{
 		"id": "bug-hunt",
@@ -312,11 +312,15 @@ const ACTIVITIES := [
 
 ## Seasonal activity boosts (HK-ish workplace rhythm).
 const SEASON_BOOST_IDS := {
-	"spring": ["feature-sprint", "upward-chat", "mentor-junior", "team-lunch", "uat-support", "morning-daily", "hackathon-blitz", "push-promo"],
-	"summer": ["oncall-night", "war-room", "typhoon-wfh", "ticket-grind", "ransomware-drill", "mtr-overtime", "vpn-firefight"],
-	"autumn": ["audit-prep", "patch-window", "cert-study", "bug-hunt", "ransomware-drill", "perf-review-week", "cloud-migration"],
+	# Spring / summer：至少一項人脈／休息浮上（唔好只埋喺地圖茶餐廳）
+	"spring": ["feature-sprint", "upward-chat", "mentor-junior", "team-lunch", "cha-chaan-teng-round", "uat-support", "morning-daily", "hackathon-blitz", "push-promo"],
+	"summer": ["oncall-night", "war-room", "typhoon-wfh", "ticket-grind", "team-lunch", "cha-chaan-teng-round", "deep-rest", "ransomware-drill", "mtr-overtime", "vpn-firefight"],
+	"autumn": ["audit-prep", "patch-window", "cert-study", "bug-hunt", "meetup-night", "team-lunch", "ransomware-drill", "perf-review-week", "cloud-migration"],
 	"winter": ["deep-rest", "cert-study", "bonus-talk", "side-project", "meetup-night", "cha-chaan-teng-round", "knowledge-base", "update-cv", "job-apply", "interview-round"],
 }
+
+## Hub soft options young players should see without opening the map.
+const HUB_SOCIAL_REST_IDS := ["team-lunch", "cha-chaan-teng-round", "deep-rest", "meetup-night"]
 
 
 static func all() -> Array:
@@ -389,6 +393,55 @@ static func is_season_boosted(activity_id: String, month: int) -> bool:
 	return activity_id in season_boost_ids(season)
 
 
+## True if activity bias is social or rest (茶餐廳／團隊飯／充電).
+static func is_social_or_rest(act: Dictionary) -> bool:
+	var bias := str(act.get("bias", ""))
+	var id := str(act.get("id", ""))
+	return bias in ["social", "rest"] or id in HUB_SOCIAL_REST_IDS
+
+
+## Guarantee ≥1 social/rest at the front of a hub pick list (non-crisis).
+## Always pins one soft option to index 0 so young players see 團隊飯／茶餐廳 without scrolling or opening the map.
+## Prefers season-boosted soft options; falls back to team-lunch / 茶餐廳 round.
+static func ensure_social_rest_visible(acts: Array, month: int, _look_ahead: int = 6) -> Array:
+	if acts.is_empty():
+		return acts
+	if is_social_or_rest(acts[0]):
+		return acts
+	var boosts: Array = season_boost_ids(season_of_month(month))
+	var pick_idx := -1
+	for i in range(acts.size()):
+		var a: Dictionary = acts[i]
+		if not is_social_or_rest(a):
+			continue
+		var id := str(a.get("id", ""))
+		if id in boosts or bool(a.get("season_boost", false)):
+			pick_idx = i
+			break
+		if pick_idx < 0:
+			pick_idx = i
+	if pick_idx < 0:
+		for sid in ["team-lunch", "cha-chaan-teng-round", "deep-rest"]:
+			var injected: Dictionary = get_activity(sid)
+			if injected.is_empty():
+				continue
+			injected["season_boost"] = sid in boosts
+			var out0: Array = acts.duplicate()
+			out0.insert(0, injected)
+			return out0
+		return acts
+	if pick_idx == 0:
+		return acts
+	var chosen: Dictionary = acts[pick_idx]
+	var out: Array = []
+	for i in range(acts.size()):
+		if i == pick_idx:
+			continue
+		out.append(acts[i])
+	out.insert(0, chosen)
+	return out
+
+
 ## Track-aware order: matching bias first, then study/social/rest/manage, then the rest.
 static func activities_for_track(track: String) -> Array:
 	var primary: Array = []
@@ -443,6 +496,21 @@ static func bias_label(bias: String) -> String:
 			return bias
 
 
+static func _nowrap_label(s: String) -> String:
+	## Keep multi-glyph CJK labels from mid-wrap (e.g. 影｜響). ASCII labels untouched.
+	var out := ""
+	var pending_wj := false
+	for i in s.length():
+		var ch := s[i]
+		var code := ch.unicode_at(0)
+		var is_cjk := (code >= 0x4E00 and code <= 0x9FFF) or (code >= 0x3400 and code <= 0x4DBF)
+		if pending_wj and is_cjk:
+			out += "\u2060"
+		out += ch
+		pending_wj = is_cjk
+	return out
+
+
 static func format_deltas(deltas: Dictionary) -> String:
 	var parts: PackedStringArray = []
 	var labels := {
@@ -457,7 +525,8 @@ static func format_deltas(deltas: Dictionary) -> String:
 		if v == 0:
 			continue
 		var sign := "+" if v > 0 else ""
-		parts.append("%s%s%s" % [sign, str(v), labels[k]])
+		# Space after number + word-joiner inside CJK → wrap between chips, never mid-label
+		parts.append("%s%s %s" % [sign, str(v), _nowrap_label(str(labels[k]))])
 	if parts.is_empty():
 		return "無明顯變化"
-	return "　".join(parts)
+	return " ｜ ".join(parts)
