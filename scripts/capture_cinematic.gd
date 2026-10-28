@@ -47,7 +47,7 @@ func _run() -> void:
 	gs.month = 4
 	gs.year = 1
 	print("[cine-shot] month_result bg=", SceneBg.path_for(gs, SceneBg.FALLBACK_MONTH))
-	if not await _shot("res://scenes/month_result.tscn", "res://shots/14_cinematic_month_result.png"):
+	if not await _shot("res://scenes/month_result.tscn", "res://shots/19_cutout_cinematic_month_result.png"):
 		quit(1)
 		return
 
@@ -56,14 +56,14 @@ func _run() -> void:
 	gs.last_activity_id = "feature-sprint"
 	gs.month = 4
 	print("[cine-shot] hub bg=", SceneBg.path_for(gs, SceneBg.FALLBACK_HUB))
-	if not await _shot("res://scenes/hub.tscn", "res://shots/15_cinematic_hub.png"):
+	if not await _shot("res://scenes/hub.tscn", "res://shots/17_cutout_cinematic_hub.png"):
 		quit(1)
 		return
 
 	gs.apply_activity("upward-chat", false)
 	gs.job_level = "junior"
 	print("[cine-shot] resolve bg=", SceneBg.path_for(gs, SceneBg.FALLBACK_MONTH))
-	if not await _shot("res://scenes/month_resolve.tscn", "res://shots/16_cinematic_month_resolve.png"):
+	if not await _shot("res://scenes/month_resolve.tscn", "res://shots/18_cutout_cinematic_month_resolve.png"):
 		quit(1)
 		return
 

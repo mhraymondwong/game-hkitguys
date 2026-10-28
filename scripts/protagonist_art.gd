@@ -9,11 +9,11 @@ extends RefCounted
 ##   2. confident — health ≥ 70
 ##                OR last id in {upward-chat, team-lunch, feature-sprint}
 ##   3. else portrait_badge.jpg
-## Fullbody (mood picker — title/offer / non-cinematic):
+## Fullbody (all cutout PNG — 先退底，再叠在背景／其他圖上；禁止 JPG 棚底):
 ##   1. hoodie — last id deep-rest OR bias rest OR id team-lunch
 ##   2. formal — last id upward-chat OR title/context hints interview/boss
-##   3. else fullbody.jpg
-## Cinematic hub/month stage: cinematic_stage_path → stand_suit (hoodie if rest).
+##   3. else fullbody.png
+## Cinematic hub/month stage: cinematic_stage_path → stand_suit PNG only.
 ## Priority: check tired before confident; hoodie before formal.
 
 
@@ -21,9 +21,9 @@ const DIR := "res://assets/protagonist/"
 const PORTRAIT_DEFAULT := DIR + "portrait_badge.jpg"
 const PORTRAIT_TIRED := DIR + "portrait_tired.jpg"
 const PORTRAIT_CONFIDENT := DIR + "portrait_confident.jpg"
-const FULLBODY_DEFAULT := DIR + "fullbody.jpg"
-const FULLBODY_HOODIE := DIR + "fullbody_hoodie.jpg"
-const FULLBODY_FORMAL := DIR + "fullbody_formal.jpg"
+const FULLBODY_DEFAULT := DIR + "fullbody.png"
+const FULLBODY_HOODIE := DIR + "fullbody_hoodie.png"
+const FULLBODY_FORMAL := DIR + "fullbody_formal.png"
 const FULLBODY_STAND_SUIT := DIR + "fullbody_stand_suit.png"
 
 const ALL_FILES := [
@@ -71,7 +71,7 @@ static func month_result_fullbody_path(gs: Node = null) -> String:
 	return fullbody_path(gs)
 
 
-## Hub / month cinematic shell: always transparent stand_suit PNG (no JPG studio floor).
+## Hub / month cinematic shell: always cutout stand_suit PNG (退底後叠 SceneBg／stage).
 static func cinematic_stage_path(_gs: Node = null) -> String:
 	return FULLBODY_STAND_SUIT
 

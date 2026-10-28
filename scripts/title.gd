@@ -4,7 +4,7 @@ extends Control
 
 const TITLE_BG := "res://assets/title_bg.jpg"
 const PORTRAIT := "res://assets/protagonist/portrait_badge.jpg"
-const FULLBODY := "res://assets/protagonist/fullbody.jpg"
+const FULLBODY := "res://assets/protagonist/fullbody.png"
 
 var _slot_box: VBoxContainer
 var _status: Label

@@ -1,4 +1,4 @@
-# 《香港IT人》— 玩法規格（v2.0.14）
+# 《香港IT人》— 玩法規格（v2.0.15）
 
 > 專案 id／資料夾：**hkitguy**  
 > 對外名稱：**《香港IT人》**  
@@ -305,7 +305,7 @@ Helpdesk／機房／開發樓層／Boardroom／茶餐廳／電腦中心／港鐵
 | `fullbody_hoodie.jpg` | 休閒 hoodie 全身（休息／週末） |
 | `fullbody_formal.jpg` | 正裝全身（向上管理／面試感） |
 
-**切換一覽**（`scripts/protagonist_art.gd`）：portrait＝健康≤35 或 grind 活動且健康≤50 → tired；健康≥70 或 upward-chat／team-lunch／feature-sprint → confident；否則 default。fullbody＝deep-rest／rest／team-lunch → hoodie；upward-chat／面試提示 → formal；否則 default。**cinematic_stage_path**（hub／月結殼）＝預設 `fullbody_stand_suit.png`；rest／茶餐廳 → hoodie。portrait 環立繪 helper 仍保留；title／offer 維持 default／工卡。
+**切換一覽**（`scripts/protagonist_art.gd`）：portrait＝健康≤35 或 grind 活動且健康≤50 → tired；健康≥70 或 upward-chat／team-lunch／feature-sprint → confident；否則 default。fullbody＝deep-rest／rest／team-lunch → hoodie；upward-chat／面試提示 → formal；否則 default。**cinematic_stage_path**（hub／月結殼）＝一律 `fullbody_stand_suit.png`（退底 PNG）。fullbody 變體亦為退底 PNG（`fullbody.png`／`hoodie`／`formal`）；**禁止**未退底 JPG 叠在背景上。portrait 環立繪 helper 仍保留；title／offer 維持 default／工卡。
 
 
 ### Phase C — Web／HTML5 匯出 ✅ DONE（2026-10-22）
@@ -459,6 +459,7 @@ smoke PASS；重截 `shots/01`–`04`／`03b`。
 
 | 版 | 日期 | 摘要 |
 |----|------|------|
+| v2.0.15 | 2026-10-28 | 主角全身立繪一律先退底（PNG）再叠背景；hoodie／formal／default 去背；cinematic 仍鎖 stand_suit |
 | v2.0.11 | 2026-10-25 | cinematic 主角底錨定＋App 固定頂部，強制頭／球空隙 |
 | v2.0.10 | 2026-10-25 | cinematic 對齊附圖：主角大腿以上比例、極座標球環、glossy 球色＋ring hint |
 | v2.0.9 | 2026-10-25 | cinematic 主角縮至 ~78% stage；App 球上移避開臉 |

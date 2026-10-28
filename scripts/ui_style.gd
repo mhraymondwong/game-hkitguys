@@ -521,6 +521,7 @@ static func _make_stat_orb(stat_key: String, value: int, orb_size: float = 68.0,
 
 
 ## Cinematic left stage: standing art + floating orbs (NO glass card).
+## Layer order: SceneBg／stage 底圖先 → 退底 PNG 主角 → ring／orbs（禁止未退底 JPG）.
 ## Figure bottom-anchored to stage floor (feet near CTA / ground).
 static func make_cinematic_stat_stage(
 	portrait_path: String,

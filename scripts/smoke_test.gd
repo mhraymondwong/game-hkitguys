@@ -1336,6 +1336,16 @@ func _run() -> void:
 		ok = false
 	elif not FileAccess.file_exists(ProjectSettings.globalize_path(ProtagonistArt.FULLBODY_STAND_SUIT)):
 		printerr("[smoke] FAIL: missing stand_suit asset")
+	elif not str(ProtagonistArt.FULLBODY_STAND_SUIT).ends_with(".png"):
+		printerr("[smoke] FAIL: stand_suit must be cutout PNG")
+	elif not str(ProtagonistArt.FULLBODY_DEFAULT).ends_with(".png") or not str(ProtagonistArt.FULLBODY_HOODIE).ends_with(".png") or not str(ProtagonistArt.FULLBODY_FORMAL).ends_with(".png"):
+		printerr("[smoke] FAIL: fullbody variants must be cutout PNG (退底後再叠背景)")
+	elif not FileAccess.file_exists(ProjectSettings.globalize_path(ProtagonistArt.FULLBODY_HOODIE)):
+		printerr("[smoke] FAIL: missing hoodie cutout PNG")
+	elif not FileAccess.file_exists(ProjectSettings.globalize_path(ProtagonistArt.FULLBODY_FORMAL)):
+		printerr("[smoke] FAIL: missing formal cutout PNG")
+	elif not FileAccess.file_exists(ProjectSettings.globalize_path(ProtagonistArt.FULLBODY_DEFAULT)):
+		printerr("[smoke] FAIL: missing default fullbody cutout PNG")
 		ok = false
 	elif not FileAccess.file_exists(ProjectSettings.globalize_path(SceneBg.BG_SUNSET)):
 		printerr("[smoke] FAIL: missing office_sunset asset")
