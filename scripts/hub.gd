@@ -3,6 +3,7 @@ extends Control
 
 
 var _list: VBoxContainer
+var _scroll: ScrollContainer
 var _confirm: Button
 var _selected: String = ""
 var _hint: Label
@@ -159,18 +160,18 @@ func _build_ui() -> void:
 		GameState.last_probation_ended = false
 
 	# Activity list: claim remaining glass height (hint/saves live in sticky bar → no clip)
-	var scroll := ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.custom_minimum_size = Vector2(0, 280)
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-	v.add_child(scroll)
+	_scroll = ScrollContainer.new()
+	_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_scroll.custom_minimum_size = Vector2(0, 280)
+	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	v.add_child(_scroll)
 
 	_list = VBoxContainer.new()
 	_list.add_theme_constant_override("separation", 8)
 	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(_list)
+	_scroll.add_child(_list)
 
 	_hint = Label.new()
 	_hint.text = "揀一項活動，再確認。"
@@ -183,14 +184,20 @@ func _build_ui() -> void:
 	_save_row = HBoxContainer.new()
 	_save_row.add_theme_constant_override("separation", 6)
 
-	# BOTTOM sticky CTA bar: title / map / compact saves / hint / confirm
+	# BOTTOM sticky CTA bar — two rows so「確認本月活動」never shares width with map/saves
 	var bar := UiStyle.make_sticky_cta_bar()
 	right_col.add_child(bar)
 	var row: HBoxContainer = bar.get_node("Row")
+	bar.remove_child(row)
+	var bar_v := VBoxContainer.new()
+	bar_v.add_theme_constant_override("separation", 6)
+	bar.add_child(bar_v)
+	bar_v.add_child(row)
 
 	var title_btn := Button.new()
 	title_btn.text = "返回標題"
 	UiStyle.apply_button(title_btn, false)
+	title_btn.custom_minimum_size = Vector2(100, 48)
 	title_btn.pressed.connect(func() -> void:
 		GameState.begin_new_game()
 		get_tree().change_scene_to_file("res://scenes/title.tscn")
@@ -202,6 +209,7 @@ func _build_ui() -> void:
 	UiStyle.apply_button(map_btn, false)
 	if GameState.map_used_this_month:
 		map_btn.text = "城市／公司（已用）"
+	map_btn.custom_minimum_size = Vector2(118, 48)
 	map_btn.pressed.connect(func() -> void:
 		get_tree().change_scene_to_file("res://scenes/map.tscn")
 	)
@@ -213,19 +221,41 @@ func _build_ui() -> void:
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(spacer)
 
+	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_hint.clip_text = true
+	_hint.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_hint.custom_minimum_size = Vector2(64, 0)
+	_save_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_save_status.clip_text = true
+	_save_status.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_save_status.custom_minimum_size = Vector2(64, 0)
 	var hint_col := VBoxContainer.new()
 	hint_col.add_theme_constant_override("separation", 2)
+	hint_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hint_col.custom_minimum_size = Vector2(64, 0)
+	hint_col.clip_contents = true
 	hint_col.add_child(_hint)
 	hint_col.add_child(_save_status)
 	row.add_child(hint_col)
 
+	var cta_row := HBoxContainer.new()
+	cta_row.add_theme_constant_override("separation", 10)
+	var cta_spacer := Control.new()
+	cta_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	cta_row.add_child(cta_spacer)
 	_confirm = Button.new()
 	_confirm.text = "確認本月活動"
-	_confirm.custom_minimum_size = Vector2(200, 50)
+	_confirm.custom_minimum_size = Vector2(210, 54)
+	_confirm.clip_text = false
+	_confirm.size_flags_horizontal = Control.SIZE_SHRINK_END
 	UiStyle.apply_button(_confirm, true)
+	_confirm.custom_minimum_size = Vector2(210, 54)
+	_confirm.clip_text = false
 	_confirm.disabled = true
 	_confirm.pressed.connect(_on_confirm)
-	row.add_child(_confirm)
+	cta_row.add_child(_confirm)
+	bar_v.add_child(cta_row)
+
 
 
 func _refresh_save_row() -> void:
@@ -290,9 +320,13 @@ func _hub_activities() -> Array:
 
 
 func _refresh_list() -> void:
-	for c in _list.get_children():
+	var keep_y := _scroll.scroll_vertical if _scroll else 0
+	var prior: Array = _list.get_children()
+	for c in prior:
+		_list.remove_child(c)
 		c.queue_free()
 	var acts: Array = _hub_activities()
+	var selected_btn: Button = null
 	for a in acts:
 		var id := str(a.get("id", ""))
 		var bias := str(a.get("bias", ""))
@@ -314,11 +348,13 @@ func _refresh_list() -> void:
 		elif track_star:
 			mark = " ◆"
 		var btn := Button.new()
+		var desc_seed := GameState.month * 19 + GameState.months_played * 7 + hash(id)
+		var desc_txt := ActivitiesData.pick_desc(a, desc_seed)
 		btn.text = "【%s】%s%s\n%s　｜　%s" % [
 			tag,
 			a.get("title", ""),
 			mark,
-			a.get("desc", ""),
+			desc_txt,
 			ActivitiesData.format_deltas(a.get("deltas", {}))
 		]
 		var tex := UiIcons.load_bias_icon(bias, is_crisis)
@@ -329,15 +365,53 @@ func _refresh_list() -> void:
 		UiStyle.apply_choice_button(btn, id == _selected)
 		btn.custom_minimum_size = Vector2(0, 68)
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		btn.set_meta("act_id", id)
 		var id_capture := id
 		var title_capture := str(a.get("title", ""))
 		btn.pressed.connect(func() -> void:
 			_selected = id_capture
 			_confirm.disabled = false
 			_hint.text = "已揀：%s" % title_capture
-			_refresh_list()
+			_refresh_list.call_deferred()
 		)
 		_list.add_child(btn)
+		if id == _selected:
+			selected_btn = btn
+	# Bottom pad so last cards can scroll fully clear of sticky CTA edge
+	var pad := Control.new()
+	pad.custom_minimum_size = Vector2(0, 36)
+	pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_list.add_child(pad)
+	if _scroll:
+		_scroll.scroll_vertical = keep_y
+		if selected_btn:
+			# Must wait for layout — same-frame size is often 0 and ensure no-ops
+			_ensure_card_visible(selected_btn)
+
+
+func _ensure_card_visible(btn: Button) -> void:
+	if _scroll == null or btn == null or not is_instance_valid(btn):
+		return
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if _scroll == null or not is_instance_valid(btn):
+		return
+	# Manual scroll so the card sits fully inside the scrollport (above sticky bar).
+	# ensure_control_visible alone can no-op before sizes settle.
+	var pad := 10.0
+	var top := btn.position.y
+	var bottom := top + maxf(btn.size.y, btn.get_combined_minimum_size().y)
+	var port := _scroll.size.y
+	if port <= 1.0:
+		return
+	var sv := float(_scroll.scroll_vertical)
+	if bottom > sv + port - pad:
+		sv = bottom - port + pad
+	if top < sv + pad:
+		sv = top - pad
+	_scroll.scroll_vertical = int(maxi(0, int(round(sv))))
+	await get_tree().process_frame
+	_scroll.ensure_control_visible(btn)
 
 
 func _on_confirm() -> void:

@@ -39,6 +39,10 @@ var last_deltas: Dictionary = {}
 var last_performance_delta: int = 0
 var last_salary_delta: int = 0
 var last_salary_before: int = 0
+## Empty when salary moved; else player-facing why flat + next window.
+var last_salary_hold_reason: String = ""
+## Times each activity id was resolved (flavour rotation).
+var activity_use_counts: Dictionary = {}
 
 var last_event_id: String = ""
 var last_event_title: String = ""
@@ -118,6 +122,8 @@ func reset() -> void:
 	last_performance_delta = 0
 	last_salary_delta = 0
 	last_salary_before = 0
+	last_salary_hold_reason = ""
+	activity_use_counts = {}
 	_clear_event()
 	_clear_map_result()
 	map_used_this_month = false
@@ -156,6 +162,8 @@ func select_education(edu_id: String) -> bool:
 	last_performance_delta = 0
 	last_salary_delta = 0
 	last_salary_before = 0
+	last_salary_hold_reason = ""
+	activity_use_counts = {}
 	_clear_event()
 	_clear_map_result()
 	_clear_career_result()
@@ -208,6 +216,7 @@ func accept_offer_and_run_first_month() -> bool:
 	last_performance_delta = 0
 	last_salary_delta = 0
 	last_salary_before = 0
+	activity_use_counts = {}
 	_clear_event()
 	_clear_map_result()
 	_clear_career_result()
@@ -220,6 +229,7 @@ func accept_offer_and_run_first_month() -> bool:
 	on_probation = true
 	probation_months_left = 3
 	last_probation_ended = false
+	last_salary_hold_reason = "人工未變——入職首月／試用期內；正式調薪要轉正＋夠年資，再用「爭取升職／加薪」。"
 	hunt_progress = 0
 	pending_offer = {}
 	last_company_state = company_state
@@ -322,7 +332,8 @@ func apply_activity(id: String, roll_event: bool = true) -> bool:
 		_apply_deltas(deltas)
 		last_activity_id = id
 		last_activity_title = str(act.get("title", ""))
-		last_month_flavour = str(act.get("flavour", ""))
+		var use_n := int(activity_use_counts.get(id, 0))
+		last_month_flavour = ActivitiesData.pick_flavour(act, use_n)
 		last_deltas = deltas.duplicate(true)
 		_apply_performance_from_activity(act)
 		_apply_hunt_from_activity(id, act)
@@ -349,6 +360,8 @@ func apply_activity(id: String, roll_event: bool = true) -> bool:
 	last_performance_delta = performance - perf_before
 	last_salary_before = sal_before
 	last_salary_delta = salary_num - sal_before
+	activity_use_counts[id] = int(activity_use_counts.get(id, 0)) + 1
+	last_salary_hold_reason = "" if last_salary_delta != 0 else _compute_salary_hold_reason()
 	return true
 
 
@@ -384,6 +397,33 @@ func apply_map_visit(location_id: String) -> bool:
 			_generate_pending_offer(seed_key + 7)
 			last_map_event_flavour += "\n\n（求職進度上升——似有 Offer 嗅味。）"
 	return true
+
+
+func _compute_salary_hold_reason() -> String:
+	## Truthful early-game copy: salary only moves via push-promo (or hop).
+	var needed := CompaniesData.promo_tenure_needed(job_level)
+	if on_probation:
+		return "人工未變——仍在試用期（剩 %d 月）。轉正後再夠年資（%s 約 %d 個月）先可用「爭取升職／加薪」。" % [
+			probation_months_left, CompaniesData.level_label(job_level), needed
+		]
+	if last_probation_ended:
+		var left := maxi(needed - tenure_months, 0)
+		if left > 0:
+			return "人工未變——剛轉正；內部調薪／升職要夠年資（尚約 %d 月）同績效，再用「爭取升職／加薪」。" % left
+		return "人工未變——剛轉正；下次可用「爭取升職／加薪」搏調薪（績效門檻約 %d）。" % CompaniesData.RAISE_PERF
+	if tenure_months < needed:
+		return "人工未變——年資未夠內部調薪窗口（而家 %d／門檻 %d 個月）。績效夠之後用「爭取升職／加薪」。" % [
+			tenure_months, needed
+		]
+	if performance < CompaniesData.RAISE_PERF:
+		return "人工未變——績效未到調薪門檻（而家 %d／≥%d）。繼續做好本業，再用「爭取升職／加薪」。" % [
+			performance, CompaniesData.RAISE_PERF
+		]
+	if last_career_kind == "freeze":
+		return "人工未變——爭取未批，叫你再等個季度。下季可再試「爭取升職／加薪」。"
+	if last_career_kind == "pip":
+		return "人工未變——考核警告／凍薪風險；先拉返績效同健康。"
+	return "人工未變——今個月冇走「爭取升職／加薪」；年資同績效已達門檻，下個月可以試。"
 
 
 func can_push_promo() -> bool:
@@ -496,6 +536,8 @@ func to_save_dict() -> Dictionary:
 		"last_performance_delta": last_performance_delta,
 		"last_salary_delta": last_salary_delta,
 		"last_salary_before": last_salary_before,
+		"last_salary_hold_reason": last_salary_hold_reason,
+		"activity_use_counts": activity_use_counts.duplicate(true),
 		"last_event_id": last_event_id,
 		"last_event_title": last_event_title,
 		"last_event_flavour": last_event_flavour,
@@ -562,6 +604,9 @@ func apply_save_dict(d: Dictionary) -> void:
 	last_performance_delta = int(d.get("last_performance_delta", 0))
 	last_salary_delta = int(d.get("last_salary_delta", 0))
 	last_salary_before = int(d.get("last_salary_before", 0))
+	last_salary_hold_reason = str(d.get("last_salary_hold_reason", ""))
+	var _auc = d.get("activity_use_counts", {})
+	activity_use_counts = _auc.duplicate(true) if typeof(_auc) == TYPE_DICTIONARY else {}
 	last_event_id = str(d.get("last_event_id", ""))
 	last_event_title = str(d.get("last_event_title", ""))
 	last_event_flavour = str(d.get("last_event_flavour", ""))

@@ -88,7 +88,10 @@ static func apply_button(btn: Button, primary: bool = false) -> void:
 		btn.add_theme_color_override("font_pressed_color", GameConfig.COL_WHITE)
 		btn.add_theme_color_override("font_disabled_color", Color(0.75, 0.7, 0.65, 0.7))
 		btn.add_theme_font_size_override("font_size", 19)
-		btn.custom_minimum_size = Vector2(0, 54)
+		# Keep caller min-width (hub CTA); never allow 0-width collapse/clip
+		var keep_w: float = btn.custom_minimum_size.x
+		btn.custom_minimum_size = Vector2(maxf(keep_w, 168.0), 54)
+		btn.clip_text = false
 	else:
 		btn.add_theme_stylebox_override("normal", button_style(GameConfig.COL_GLASS_SOFT, GameConfig.COL_TILE_BORDER, 16))
 		btn.add_theme_stylebox_override("hover", button_style(GameConfig.COL_CHIP_HOVER, GameConfig.COL_RIM_CYAN, 16))

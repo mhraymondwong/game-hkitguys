@@ -9,41 +9,81 @@ const ACTIVITIES := [
 		"id": "ticket-grind",
 		"title": "清 Ticket 大作戰",
 		"desc": "把頭先積壓嘅單清乾淨，幫同事收尾。",
+		"desc_variants": [
+			"清積壓、寫 resolution、幫同事收尾。",
+			"批量關單、追 P2、令 queue 見底。",
+		],
 		"bias": "infra",
 		"deltas": {"infra": 4, "app": 1, "manage": 0, "influence": 1, "health": -4},
-		"flavour": "ServiceNow 列表終於由紅變綠。你收工前搞掂最後一張 P2，前輩拍肩：「今個月靠你。」茶餐廳凍檸茶都甜咗少少。"
+		"flavour": "ServiceNow 列表終於由紅變綠。你收工前搞掂最後一張 P2，前輩拍肩：「今個月靠你。」茶餐廳凍檸茶都甜咗少少。",
+		"flavour_variants": [
+			"Queue 由 40 張削到 12。你學會批量關單同寫清楚 resolution。前輩話：「你而家識寫 ticket 文。」",
+			"有張鬼打牆 P3 跟咗兩週，原來係 user 自己搞錯環境。你忍住冇 roll eyes，溫柔 close——人情分暗中＋1。",
+		]
 	},
 	{
 		"id": "oncall-night",
 		"title": "On-call 夜更",
 		"desc": "拎住 pager，半夜隨時要上線。",
+		"desc_variants": [
+			"值夜更、分真假警報、交班寫清楚。",
+			"Pager 響就要上；朝早交班。",
+		],
 		"bias": "infra",
 		"deltas": {"infra": 5, "app": 0, "manage": 1, "influence": 2, "health": -8},
-		"flavour": "凌晨三點警報響。你喺黑漆漆大廳開 VPN，原來係 monitoring 誤報——但你第一次獨立 close 咗一個 severity。天亮眼圈有啲重。"
+		"flavour": "凌晨三點警報響。你喺黑漆漆大廳開 VPN，原來係 monitoring 誤報——但你第一次獨立 close 咗一個 severity。天亮眼圈有啲重。",
+		"flavour_variants": [
+			"第二次夜更你已經識優先看 dashboard。真警報嚟之前你已經 mute 咗噪音。天亮交班，聲音有啲沙。",
+			"Pager 響喺被窩。你朦朧開 laptop，原來係依賴方維護窗。你寫低 postmortem 草稿就倒回頭睡。",
+		]
 	},
 	{
 		"id": "patch-window",
 		"title": "Patch Window",
 		"desc": "跟 change 流程打補丁、restart、驗收。",
+		"desc_variants": [
+			"跟 CAB、打補丁、smoke、準備 rollback。",
+			"維護窗 countdown、驗收、更新 runbook。",
+		],
 		"bias": "infra",
 		"deltas": {"infra": 5, "app": 1, "manage": 2, "influence": 1, "health": -5},
-		"flavour": "Change CAB 過咗。你同值班一齊 countdown，patch 完 smoke test 全綠。Manager 喺 chat 打咗句「好嘢」。"
+		"flavour": "Change CAB 過咗。你同值班一齊 countdown，patch 完 smoke test 全綠。Manager 喺 chat 打咗句「好嘢」。",
+		"flavour_variants": [
+			"今次你係 primary。Rollback 計劃寫到半頁，結果用唔着——一次過。Chat 有人打「穩陣」。",
+			"Staging 先炸一次，你捉住 config drift。Prod 窗順利，事後你更新咗 runbook 嗰行「千祈檢查」。",
+		]
 	},
 	{
 		"id": "feature-sprint",
 		"title": "Feature Sprint",
 		"desc": "跟 sprint 寫功能、開 PR、對齊設計。",
+		"desc_variants": [
+			"呢個 sprint 收尾功能、補 test、對齊設計稿。",
+			"衝 story point：開 PR、回 review、睇 staging。",
+		],
 		"bias": "app",
 		"deltas": {"infra": 0, "app": 5, "manage": 1, "influence": 1, "health": -5},
-		"flavour": "Stand-up 每日都講 progress。你嘅 PR 終於 merge，staging 見到自己寫嘅 button。Slack 有人 react 咗個讚——細細嘅成就感。"
+		"flavour": "Stand-up 每日都講 progress。你嘅 PR 終於 merge，staging 見到自己寫嘅 button。Slack 有人 react 咗個讚——細細嘅成就感。",
+		"flavour_variants": [
+			"今個 sprint 你負責個 edge case。Code review 改咗兩輪，終於 green。Product 話「可以 demo」——你喺椅背伸懶腰。",
+			"板上面你張卡由 In Progress 拖去 Done。Stand-up 冇人追問，反而有人問你點解啲 test 咁穩。細細成就，夠用成個月。",
+		]
 	},
 	{
 		"id": "bug-hunt",
 		"title": "追 Bug 馬拉松",
 		"desc": "跟 log、reproduce、寫 regression test。",
+		"desc_variants": [
+			"Reproduce、鎖 regression、同 QA 對齊。",
+			"撈 log、修根因、防止再爆。",
+		],
 		"bias": "app",
 		"deltas": {"infra": 1, "app": 5, "manage": 0, "influence": 1, "health": -6},
-		"flavour": "個 bug 原來係 timezone。你寫咗測試鎖死佢，QA 話「終於再現得穩」。你對住螢幕苦笑：又學多一課。"
+		"flavour": "個 bug 原來係 timezone。你寫咗測試鎖死佢，QA 話「終於再現得穩」。你對住螢幕苦笑：又學多一課。",
+		"flavour_variants": [
+			"Reproduce 要三個步驟加舊瀏覽器。你錄咗片畀 QA，對方回「神仙」。Regression 一寫，心裡先敢放低。",
+			"Log 海裡面撈針。你加咗 structured logging，下次同類問題五分鐘定位。Tech lead 默默 bookmark 你個 PR。",
+		]
 	},
 	{
 		"id": "uat-support",
@@ -51,7 +91,11 @@ const ACTIVITIES := [
 		"desc": "陪用戶驗收、記缺陷、教操作。",
 		"bias": "app",
 		"deltas": {"infra": 0, "app": 3, "manage": 2, "influence": 3, "health": -3},
-		"flavour": "會議室投影模糊，但你耐住性子帶阿姐行完流程。UAT sign-off 一簽，業務請咗杯手沖。影響力，原來由聽人講起。"
+		"flavour": "會議室投影模糊，但你耐住性子帶阿姐行完流程。UAT sign-off 一簽，業務請咗杯手沖。影響力，原來由聽人講起。",
+		"flavour_variants": [
+			"用戶改口三次需求。你忍住，逐版截圖確認。Sign-off 嗰刻雙方都鬆一口氣。",
+			"你教完快捷鍵，阿姐話「早啲有你就好」。UAT 缺陷少咗，你影響力唔喺 code，喺耐心。",
+		]
 	},
 	{
 		"id": "cert-study",
@@ -67,7 +111,11 @@ const ACTIVITIES := [
 		"desc": "約同事食飯，聽八卦、建人情。",
 		"bias": "social",
 		"deltas": {"infra": 0, "app": 0, "manage": 1, "influence": 4, "health": 2},
-		"flavour": "茶餐廳拼枱，大家講邊間公司又裁員、邊個 manager 好傾。你記住幾個人名同忌口——職場人情，好多時由一碟乾炒牛河開始。"
+		"flavour": "茶餐廳拼枱，大家講邊間公司又裁員、邊個 manager 好傾。你記住幾個人名同忌口——職場人情，好多時由一碟乾炒牛河開始。",
+		"flavour_variants": [
+			"今次換咗間韓式。話題由 Jira 講到邊個想考證。你交換咗兩個內部 Slack handle。",
+			"有人請食甜品慶祝 release。你聽完半日八卦，返工精神好啲——人情帳又厚一頁。",
+		]
 	},
 	{
 		"id": "upward-chat",
@@ -83,7 +131,11 @@ const ACTIVITIES := [
 		"desc": "少 OT、早瞓、行山或者淨係發夢。",
 		"bias": "rest",
 		"deltas": {"infra": 0, "app": 0, "manage": 0, "influence": 0, "health": 10},
-		"flavour": "今個月你敢按「離開」準時。周末行咗大嶼山，手機靜音。返工一見螢幕仲係頭痛，但人已經返魂。"
+		"flavour": "今個月你敢按「離開」準時。周末行咗大嶼山，手機靜音。返工一見螢幕仲係頭痛，但人已經返魂。",
+		"flavour_variants": [
+			"你真係放低 laptop。周未行山，手機飛行模式。禮拜一開機，眼冇咁紅。",
+			"早瞓三晚，夢裡面竟然冇 Pager。健康條返魂，你決定下個月都敢準時走。",
+		]
 	},
 	{
 		"id": "lab-sandbox",
@@ -187,9 +239,17 @@ const ACTIVITIES := [
 		"id": "morning-daily",
 		"title": "晨會 Daily 馬拉松",
 		"desc": "日日 standup、更新板、對齊阻滯。",
+		"desc_variants": [
+			"Standup 對齊進度同 blocker。",
+			"更新板、拆卡、幫人 unblock。",
+		],
 		"bias": "manage",
 		"deltas": {"infra": 1, "app": 2, "manage": 4, "influence": 2, "health": -4},
-		"flavour": "「有冇 blocker？」問咗二十日。你開始識用三十秒講清進度，又幫人 unblock。板靚咗，聲帶有啲乾。"
+		"flavour": "「有冇 blocker？」問咗二十日。你開始識用三十秒講清進度，又幫人 unblock。板靚咗，聲帶有啲乾。",
+		"flavour_variants": [
+			"你開始用「昨日／今日／卡住」三句板。Team 節奏齊咗少少，你自己都冇咁亂。",
+			"有人每日都講「仲 investigate」。你幫佢拆成兩個細卡——板靚咗，對方請你飲咖啡。",
+		]
 	},
 	{
 		"id": "cloud-migration",
@@ -197,7 +257,11 @@ const ACTIVITIES := [
 		"desc": "搬 workload、切流量、盯成本同延遲。",
 		"bias": "infra",
 		"deltas": {"infra": 6, "app": 2, "manage": 2, "influence": 1, "health": -7},
-		"flavour": "藍綠部署倒數。DNS 切過去嗰秒你屏住氣——latency 正常，帳單暫時未爆炸。群組先敢打「切完」。"
+		"flavour": "藍綠部署倒數。DNS 切過去嗰秒你屏住氣——latency 正常，帳單暫時未爆炸。群組先敢打「切完」。",
+		"flavour_variants": [
+			"切流量前你演練咗兩次。真正切過去，latency 圖係平嘅——你先敢喝口水。",
+			"成本警報跳咗一下，你立刻縮咗過大嘅 instance。Finance 之後冇找上門，算你贏。",
+		]
 	},
 	{
 		"id": "hackathon-blitz",
@@ -221,7 +285,11 @@ const ACTIVITIES := [
 		"desc": "遙距掛、證書過期、人人喊入唔到。",
 		"bias": "infra",
 		"deltas": {"infra": 5, "app": 1, "manage": 2, "influence": 2, "health": -8},
-		"flavour": "群組刷「VPN 掛咗」。你對住證書同 gateway 對咗成晚，終於有人話「入到」。茶水間之後當你半個英雄。"
+		"flavour": "群組刷「VPN 掛咗」。你對住證書同 gateway 對咗成晚，終於有人話「入到」。茶水間之後當你半個英雄。",
+		"flavour_variants": [
+			"證書鏈斷喺中間嗰環。你畫咗張圖對住群組講，終於有人「入到」。",
+			"遙距全軍覆沒嗰朝，你做咗臨時 bypass 再慢慢修正路。事後 security 同你對齊邊界。",
+		]
 	},
 	{
 		"id": "knowledge-base",
@@ -229,7 +297,11 @@ const ACTIVITIES := [
 		"desc": "寫文件、錄短片、清過時步驟。",
 		"bias": "study",
 		"deltas": {"infra": 2, "app": 2, "manage": 2, "influence": 2, "health": -2},
-		"flavour": "舊 wiki 鏈結全紅。你重寫三篇 runbook，新人話「終於跟得明」。下一次 war room，大家開嘅係你篇。"
+		"flavour": "舊 wiki 鏈結全紅。你重寫三篇 runbook，新人話「終於跟得明」。下一次 war room，大家開嘅係你篇。",
+		"flavour_variants": [
+			"你把「常見重置密碼」寫成三步圖。Helpdesk 話 ticket 少咗成成成。",
+			"舊文全係 2019。你 archive 一批，留低而家仲啱用嘅。新人 onboarding checklist 加咗你篇。",
+		]
 	},
 
 	# —— Phase 5 職涯（內部／外部）——
@@ -509,6 +581,36 @@ static func _nowrap_label(s: String) -> String:
 		out += ch
 		pending_wj = is_cjk
 	return out
+
+
+
+static func _variant_pool(act: Dictionary, field: String, variants_key: String) -> Array:
+	var pool: Array = []
+	var primary := str(act.get(field, ""))
+	if primary != "":
+		pool.append(primary)
+	var extra = act.get(variants_key, [])
+	if typeof(extra) == TYPE_ARRAY:
+		for v in extra:
+			var s := str(v)
+			if s != "" and s not in pool:
+				pool.append(s)
+	return pool
+
+
+static func pick_flavour(act: Dictionary, seed_key: int) -> String:
+	## seed_key = use_count (preferred) or any int; consecutive ints cycle the pool.
+	var pool: Array = _variant_pool(act, "flavour", "flavour_variants")
+	if pool.is_empty():
+		return ""
+	return str(pool[posmod(absi(seed_key), pool.size())])
+
+
+static func pick_desc(act: Dictionary, seed_key: int) -> String:
+	var pool: Array = _variant_pool(act, "desc", "desc_variants")
+	if pool.is_empty():
+		return str(act.get("desc", ""))
+	return str(pool[posmod(absi(seed_key), pool.size())])
 
 
 static func format_deltas(deltas: Dictionary) -> String:

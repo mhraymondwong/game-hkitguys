@@ -35,3 +35,23 @@ static func load_bias_icon(bias: String, crisis: bool = false) -> Texture2D:
 	if not ResourceLoader.exists(path):
 		return null
 	return load(path) as Texture2D
+
+
+## Map locations reuse hub bias art (no emoji — tofu-safe on web).
+static func location_bias(location_id: String) -> String:
+	match location_id:
+		"company":
+			return "infra"
+		"cha-chaan-teng":
+			return "social"
+		"home":
+			return "rest"
+		"job-board":
+			return "career"
+		_:
+			return "career"
+
+
+static func load_location_icon(location_id: String) -> Texture2D:
+	return load_bias_icon(location_bias(location_id), false)
+

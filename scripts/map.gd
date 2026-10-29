@@ -147,9 +147,17 @@ func _refresh() -> void:
 		for loc in MapData.all_locations():
 			var id := str(loc.get("id", ""))
 			var btn := Button.new()
-			btn.text = "%s　%s\n%s" % [str(loc.get("icon", "")), str(loc.get("title", "")), str(loc.get("desc", ""))]
+			btn.text = "%s\n%s" % [str(loc.get("title", "")), str(loc.get("desc", ""))]
 			btn.custom_minimum_size = Vector2(0, 96)
 			btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			var tex := UiIcons.load_location_icon(id)
+			if tex == null:
+				# Fall back via explicit bias on the location dict
+				tex = UiIcons.load_bias_icon(str(loc.get("icon_bias", "career")), false)
+			if tex:
+				btn.icon = tex
+				btn.expand_icon = true
+				btn.add_theme_constant_override("icon_max_width", 52)
 			UiStyle.apply_choice_button(btn, false)
 			btn.disabled = false
 			var id_cap := id

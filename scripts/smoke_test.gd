@@ -1606,6 +1606,135 @@ func _run() -> void:
 		print("[smoke] hub crisis lock intact OK")
 
 
+	# —— v2.0.19 playtest high-priority UX (CTA clip + 5th card) ——
+	print("[smoke] playtest-fix-high-v219 checks…")
+	var hub_v219 := FileAccess.get_file_as_string("res://scripts/hub.gd")
+	var ui_v219 := FileAccess.get_file_as_string("res://scripts/ui_style.gd")
+	if "確認本月活動" not in hub_v219:
+		printerr("[smoke] FAIL: hub confirm label missing")
+		ok = false
+	elif "Vector2(210, 54)" not in hub_v219:
+		printerr("[smoke] FAIL: hub confirm min-width 210 missing")
+		ok = false
+	elif "clip_text = false" not in hub_v219:
+		printerr("[smoke] FAIL: hub confirm clip_text false missing")
+		ok = false
+	elif "ensure_control_visible" not in hub_v219 or "_ensure_card_visible" not in hub_v219:
+		printerr("[smoke] FAIL: hub missing ensure card visible")
+		ok = false
+	elif "custom_minimum_size = Vector2(0, 36)" not in hub_v219:
+		printerr("[smoke] FAIL: hub list bottom pad missing")
+		ok = false
+	else:
+		print("[smoke] hub CTA/scroll v219 OK")
+	if "maxf(keep_w, 168.0)" not in ui_v219:
+		printerr("[smoke] FAIL: apply_button primary min-width guard missing")
+		ok = false
+	else:
+		print("[smoke] primary CTA min-width guard OK")
+
+
+	# —— v2.0.20 playtest medium-priority UX (map icons / salary hold / flavour variants) ——
+	print("[smoke] playtest-fix-med-v220 checks…")
+	var map_src_v220 := FileAccess.get_file_as_string("res://scripts/map.gd")
+	var map_data_v220 := FileAccess.get_file_as_string("res://scripts/map_data.gd")
+	var ui_icons_v220 := FileAccess.get_file_as_string("res://scripts/ui_icons.gd")
+	if "load_location_icon" not in map_src_v220 and "load_location_icon" not in ui_icons_v220:
+		printerr("[smoke] FAIL: map location icon helper missing")
+		ok = false
+	elif "🏢" in map_data_v220 or "🍜" in map_data_v220 or "🏠" in map_data_v220 or "💼" in map_data_v220:
+		printerr("[smoke] FAIL: map_data still has emoji icons (tofu risk)")
+		ok = false
+	elif "icon_bias" not in map_data_v220:
+		printerr("[smoke] FAIL: map_data missing icon_bias")
+		ok = false
+	elif "btn.icon" not in map_src_v220:
+		printerr("[smoke] FAIL: map.gd does not assign btn.icon")
+		ok = false
+	else:
+		print("[smoke] map PNG icons (no emoji) OK")
+
+	var gs_src_v220 := FileAccess.get_file_as_string("res://scripts/game_state.gd")
+	var resolve_src_v220 := FileAccess.get_file_as_string("res://scripts/month_resolve.gd")
+	if "_compute_salary_hold_reason" not in gs_src_v220 or "last_salary_hold_reason" not in gs_src_v220:
+		printerr("[smoke] FAIL: salary hold reason missing in GameState")
+		ok = false
+	elif "last_salary_hold_reason" not in resolve_src_v220:
+		printerr("[smoke] FAIL: month_resolve does not show salary hold reason")
+		ok = false
+	elif "人工未變" not in gs_src_v220:
+		printerr("[smoke] FAIL: salary hold copy missing 人工未變")
+		ok = false
+	else:
+		print("[smoke] salary hold explain OK")
+
+	# Behavioural: early months stay flat + hold reason filled
+	gs.begin_new_game()
+	gs.select_education("uni")
+	gs.select_job("junior-dev")
+	gs.accept_offer_and_run_first_month()
+	var sal0_v220: int = int(gs.salary_num)
+	if str(gs.last_salary_hold_reason) == "" or "人工未變" not in str(gs.last_salary_hold_reason):
+		printerr("[smoke] FAIL: first month missing salary hold reason")
+		ok = false
+	else:
+		print("[smoke] first-month salary hold OK")
+	gs.prepare_next_month()
+	if not gs.apply_activity("feature-sprint", true):
+		printerr("[smoke] FAIL: feature-sprint apply failed")
+		ok = false
+	elif gs.salary_num != sal0_v220:
+		printerr("[smoke] FAIL: unexpected early salary change (should stay flat)")
+		ok = false
+	elif str(gs.last_salary_hold_reason) == "":
+		printerr("[smoke] FAIL: post-activity salary hold empty while flat")
+		ok = false
+	else:
+		print("[smoke] early salary flat + explain OK: ", str(gs.last_salary_hold_reason).substr(0, 24), "…")
+
+	var act_src_v220 := FileAccess.get_file_as_string("res://scripts/activities_data.gd")
+	if "flavour_variants" not in act_src_v220 or "pick_flavour" not in act_src_v220:
+		printerr("[smoke] FAIL: flavour variants / pick_flavour missing")
+		ok = false
+	elif "feature-sprint" not in act_src_v220:
+		printerr("[smoke] FAIL: feature-sprint missing")
+		ok = false
+	else:
+		var fs_v220: Dictionary = ActivitiesData.get_activity("feature-sprint")
+		var f0_v220 := ActivitiesData.pick_flavour(fs_v220, 0)
+		var f1_v220 := ActivitiesData.pick_flavour(fs_v220, 1)
+		var f2_v220 := ActivitiesData.pick_flavour(fs_v220, 2)
+		var uniq_v220 := {}
+		for fl in [f0_v220, f1_v220, f2_v220]:
+			uniq_v220[fl] = true
+		if uniq_v220.size() < 2:
+			printerr("[smoke] FAIL: feature-sprint flavour variants not rotating")
+			ok = false
+		else:
+			print("[smoke] feature-sprint flavour rotate OK (", uniq_v220.size(), " distinct in 0..2)")
+
+	# Two resolves of same activity → different flavour when use count advances
+	gs.begin_new_game()
+	gs.select_education("uni")
+	gs.select_job("junior-dev")
+	gs.accept_offer_and_run_first_month()
+	gs.prepare_next_month()
+	gs.apply_activity("feature-sprint", false)
+	var fl_a_v220: String = str(gs.last_month_flavour)
+	gs.prepare_next_month()
+	gs.apply_activity("feature-sprint", false)
+	var fl_b_v220: String = str(gs.last_month_flavour)
+	if fl_a_v220 == "" or fl_b_v220 == "":
+		printerr("[smoke] FAIL: empty feature-sprint flavour")
+		ok = false
+	elif fl_a_v220 == fl_b_v220:
+		printerr("[smoke] FAIL: feature-sprint second pick same flavour (use_n rotate broken)")
+		printerr("[smoke]   a=", fl_a_v220)
+		printerr("[smoke]   b=", fl_b_v220)
+		ok = false
+	else:
+		print("[smoke] feature-sprint second pick different flavour OK")
+
 	if ok:
 		print("[smoke] PASS")
 		quit(0)

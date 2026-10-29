@@ -109,6 +109,13 @@ func _build_ui() -> void:
 		UiStyle.apply_label(raise_banner, 14)
 		raise_banner.add_theme_color_override("font_color", GameConfig.COL_RIM_CYAN)
 		v.add_child(raise_banner)
+	elif str(GameState.last_salary_hold_reason) != "":
+		var hold_banner := Label.new()
+		hold_banner.text = "◆ %s" % GameState.last_salary_hold_reason
+		hold_banner.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		UiStyle.apply_label(hold_banner, 13)
+		hold_banner.add_theme_color_override("font_color", GameConfig.COL_RIM_GOLD)
+		v.add_child(hold_banner)
 
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL

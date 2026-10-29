@@ -8,25 +8,25 @@ const LOCATIONS := [
 		"id": "company",
 		"title": "公司樓層",
 		"desc": "Helpdesk／機房／開發位——返工日常。",
-		"icon": "🏢"
+		"icon_bias": "infra"
 	},
 	{
 		"id": "cha-chaan-teng",
 		"title": "茶餐廳",
 		"desc": "凍檸茶同人情帳。",
-		"icon": "🍜"
+		"icon_bias": "social"
 	},
 	{
 		"id": "home",
 		"title": "屋企",
 		"desc": "港鐵夜歸之後，終於靜一靜。",
-		"icon": "🏠"
+		"icon_bias": "rest"
 	},
 	{
 		"id": "job-board",
 		"title": "求職平台",
 		"desc": "刷 JD、改 CV——睇市。",
-		"icon": "💼"
+		"icon_bias": "career"
 	},
 ]
 

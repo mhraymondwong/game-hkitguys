@@ -1,4 +1,4 @@
-# 《香港IT人》— 玩法規格（v2.0.18）
+# 《香港IT人》— 玩法規格（v2.0.20）
 
 > 專案 id／資料夾：**hkitguy**  
 > 對外名稱：**《香港IT人》**  
@@ -459,6 +459,8 @@ smoke PASS；重截 `shots/01`–`04`／`03b`。
 
 | 版 | 日期 | 摘要 |
 |----|------|------|
+| v2.0.20 | 2026-10-29 | 玩測中優先：地圖用 bias PNG 圖示（唔再豆腐）；人工未變顯示原因（試用期／績效門檻等）；Feature Sprint 等活動二次文案變體；smoke＋shots/fix_med_v220；HTML5→Pages |
+| v2.0.19 | 2026-10-29 | 玩測高優先：Hub「確認本月活動」兩列 sticky＋min-width 210 防裁字；活動列表底 pad＋延遲 refresh＋手動 scroll 入镜，第五卡起唔再被底欄切半；smoke＋shots/fix_high_v219；隨 v2.0.20 推 Pages |
 | v2.0.18 | 2026-10-29 | 玩測低優先：月結故事卡放大；cinematic 可喺 cutout PNG（suit／hoodie／formal）切換；hub 非危機月浮上團隊飯／茶餐廳／休息；夏秋季節 boost 加人脈；smoke＋shots/playtest_fix_low；未推 Pages |
 | v2.0.17 | 2026-10-29 | 玩測中優先：試用期完結一拍（resolve banner＋hub step）；入職月標明公司已排 onboarding；orb「0–100｜影響升職同 Offer」；市況改一口粵語短句；smoke＋shots/playtest_fix_med；未推 Pages |
 | v2.0.16 | 2026-10-29 | 玩測高優先：活動列表可捲第四卡；地圖結果不叠卡＋「已用」；公司／市況無變改短 chip；影響斷行／缺字／綠邊；月結績效Δ＋人工；smoke＋shots/playtest_fix |
